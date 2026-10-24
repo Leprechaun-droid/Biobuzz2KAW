@@ -1,6 +1,8 @@
 package teamcode.Subsystems.ShooterTuning;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -16,9 +18,9 @@ public class kPShooterTuning extends LinearOpMode {
     // -------------------------
     // SHOOTER
     // -------------------------
-    public static double kV = 0.00075;
-    public static double kS = 0.075;
-    public static double kP = 0;
+    public static double kV = 0.0008;
+    public static double kS = 0.07;
+    public static double kP = 0.005;
 
     //540 is a good number, it is give or take 10
     public static int goalRPM = 560;
@@ -41,6 +43,7 @@ public class kPShooterTuning extends LinearOpMode {
         robot = new Robot(hardwareMap);
         driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
 
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         waitForStart();
         while(opModeIsActive()){
                 double feedForward = (kV * goalRPM) + kS;
@@ -62,7 +65,8 @@ public class kPShooterTuning extends LinearOpMode {
 
 
             telemetry.addData("kP: ", "%.6f", kP);
-            telemetry.addData("currentRPM: ", shooter.getRPM());
+            telemetry.addData("currentRPM:", shooter.getRPM());
+            telemetry.addData("targetRPM:", goalRPM);
             telemetry.addData("ticksPerSec", shooter.getTicksPerSec());
             telemetry.update();
 

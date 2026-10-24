@@ -32,9 +32,9 @@ public class Shooter {
 
     //PID Tuning Values
 
-        public static double kV = 0.00075;
-        public static double kS = 0.075;
-        public static double kP = 0;
+        public static double kV = 0.0008;
+        public static double kS = 0.07;
+        public static double kP = 0.005;
 
     //Objects
         //put tuning constants in class parameters when I make the PIDController class
@@ -83,13 +83,12 @@ public class Shooter {
 
         public void calculateShooterPID(){
 
+            double feedForward = (kV * baseTargetRPM) + kS;
             double error = baseTargetRPM - getRPM();
-            //double check the logic behind this
-            double ff = (kV * baseTargetRPM) + kS;
-            if (baseTargetRPM == 0) ff = 0; // Don't apply kS if we aren't trying to spin
-            
-            double fb = error * kP;
-            double power = ff + fb;
+            double feedBack = error * kP;
+            if (baseTargetRPM == 0) feedForward = 0; // Don't apply kS if we aren't trying to spin
+            double power = feedForward + feedBack;
+
 
             setShooterMotorPowers(power);
 

@@ -45,6 +45,18 @@ public class FarRedAuto extends LinearOpMode {
 
     private Command autoRoutine(){
         return sequential(goToFarCell(),
+
+                //rev the motor
+                //
+
+
+
+
+
+
+
+
+
                 robot.shooter.basicShoot(),
                 goToPark()
         );

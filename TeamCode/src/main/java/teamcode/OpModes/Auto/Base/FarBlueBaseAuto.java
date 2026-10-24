@@ -1,5 +1,6 @@
 package teamcode.OpModes.Auto.Base;
 
+import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
@@ -27,73 +28,45 @@ public class FarBlueBaseAuto extends LinearOpMode {
     // -----
     // Poses
     // -----
-    private final Pose startPos = poseFactory.of(15, 135, 270);
+    private final Pose startPos = poseFactory.of(8, 34, 0);
     // check if the distance from the cell is the same for each side. It should be relatively simple and just measure
     // the y difference
-    private final Pose midPos = poseFactory.of(58, 110, 270);
-    private final Pose park = poseFactory.of(9, 117, 270);
+    private final Pose nearCellShootPos = poseFactory.of(56, 34, 0);
+    private final Pose nearCellShootPosControl = poseFactory.of(11, 29, 0); //reminder: irrelevant control point heading
+    private final Pose park = poseFactory.of(14.5, 98, 0);
 
     // -------
     // Paths
     // -------
-    private Path startToFarBlueShoot() {
-        return line(startPos, midPos).linear(startPos, midPos);
+    private Path startToNearBlueShoot() {
+        return line(startPos, nearCellShootPos).linear(startPos, nearCellShootPos, 0.4);
     }
-    private Path farBlueCellToPark() {
-        return line(midPos, park).linear(midPos, park);
+    private Path nearBlueCellToPark() {
+        return curve(nearCellShootPos, nearCellShootPosControl, park).linear(nearCellShootPos, park);
     }
 
     // ---------
     // Commands
     // ---------
-    private Command goToFarBlue() {
-        return follow(follower, startToFarBlueShoot());
+    private Command goToNearBlue() {
+        return follow(follower, startToNearBlueShoot());
     }
 
-    private Command goToParkFromFarCell() {
-        return follow(follower, farBlueCellToPark());
+    private Command goToParkFromNearCell() {
+        return follow(follower, nearBlueCellToPark());
     }
 
     // ------------
     // AutoRoutine
     // ------------
-    private Command autoRoutine(){
+    private Command autoRoutine(Robot.Alliance alliance){
         return sequential(
-
-                //check if cell is raised
-                    //if it is, perform the following action
-                    //if not, waitUntil with conditional or something similar
-                        //add redundancy in case the other team cannot
-
-
-
-
-                //repeat 4 times (we start with 4 preloaded pollen)
-                    //set TargetRPM
-                    //when at specific RPM (or in error range)
-                        //openServoGate
-                        // loadLauncher
-                        // close servoGate
-                        // zeroTransfer
-
-                        // fullFrontIntake
-                        //zeroFrontIntake
-
-
-
-
-
-                //go to Far blue shooting pos or start there
-                //hive is always tipped up on far blue, so I don't need to check aprilTags
-                //shoot
-                //go to park
-
-                goToFarBlue(),
+                goToNearBlue(),
+                //add shoot
+                //change 1000 to targetRPM
+                //robot.vision.useAprilTagsToSetCellState(alliance),
                 //robot.shooter.basicShoot(),
-                //Repeat 4 times
-                    //if a certain RPM margin of error is reached, load a ball for shooting
-
-                goToParkFromFarCell()
+                goToParkFromNearCell()
         );
     }
 
@@ -106,15 +79,11 @@ public class FarBlueBaseAuto extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
         follower.setPose(startPos);
-        Scheduler.schedule(autoRoutine());
+        robot.setAlliance(Robot.Alliance.BLUE);
+        Scheduler.schedule(autoRoutine(robot.getAlliance()));
         waitForStart();
-
-        robot.vision.resetScanner();
         while (opModeIsActive()) {
             follower.update();
-            //robot.vision.scanForClusters();
-            //robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
-            //robot.shooter.calculateShooterPID();
             Scheduler.execute();
 
             telemetry.update();
@@ -126,4 +95,8 @@ public class FarBlueBaseAuto extends LinearOpMode {
 
 
     }
+
+
+
+
 }

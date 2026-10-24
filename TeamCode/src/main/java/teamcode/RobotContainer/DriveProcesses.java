@@ -8,7 +8,7 @@ public class DriveProcesses {
     Gamepad gamepad1;
     Gamepad gamepad2;
     //add fullIntakeConditionRPM as a velocity the flywheel must reach before the shooter runs (the pid target RPM)
-    int targetRPM = 540;
+    int targetRPM = 560;
 
     //KEEP TRACK OF THIS; I AM UNSURE IF CALLING THIS BOTH IN HERE AND IN THE OPMODE WILL CAUSE ISSUES (CALLING IT TWICE)
     //IT SHOULD NOT BECAUSE THEY DO NOT CREATE AN INFINITE LOOP OF CALLING, BUT STILL

@@ -1,10 +1,17 @@
 package teamcode.OpModes.Auto.Base;
 
+import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
+import static com.pedropathing.ivy.commands.Commands.conditional;
+import static com.pedropathing.ivy.commands.Commands.infinite;
+import static com.pedropathing.ivy.commands.Commands.instant;
 import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.deadline;
+import static com.pedropathing.ivy.groups.Groups.parallel;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.api.PoseFactory;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.ivy.Command;
@@ -13,10 +20,12 @@ import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+@Config
 @Autonomous
 public class NearRedBaseAuto extends LinearOpMode {
 
@@ -24,53 +33,84 @@ public class NearRedBaseAuto extends LinearOpMode {
     private Follower follower;
     private Robot robot;
     private final PoseFactory poseFactory = PoseFactory.degrees();
+    private ElapsedTime timer = new ElapsedTime();
+
+    public static double waitTime = 3000;
 
     // -----
     // Poses
     // -----
-    private final Pose startPos = poseFactory.of(127, 8, 90);
-    // check if the distance from the cell is the same for each side. It should be relatively simple and just measure
-    // the y difference
-    private final Pose nearCellShootPos = poseFactory.of(84, 28, 90);
-    private final Pose park = poseFactory.of(132, 30, 90);
+    private final Pose startPos = poseFactory.of(133, 108, 180);
+    private final Pose farCellShootPos = poseFactory.of(120, 130, 180);
+    private final Pose park = poseFactory.of(134, 40, 180);
 
     // -------
     // Paths
     // -------
-    private Path startToNearRedShoot() {
-        return line(startPos, nearCellShootPos).linear(startPos, nearCellShootPos);
+    private Path startToFarRedShoot() {
+        return line(startPos, farCellShootPos).linear(startPos, farCellShootPos);
     }
-    private Path nearRedCellToPark() {
-        return line(nearCellShootPos, park).linear(nearCellShootPos, park);
+    private Path farRedCellToPark() {
+        return line(farCellShootPos, park).linear(farCellShootPos, park);
     }
 
     // ---------
     // Commands
     // ---------
-    private Command goToNearRed() {
-        return follow(follower, startToNearRedShoot());
+    private Command goToFarRed() {
+        return follow(follower, startToFarRedShoot());
     }
 
-    private Command goToParkFromNearCell() {
-        return follow(follower, nearRedCellToPark());
+    private Command goToParkFromFarCell() {
+        return follow(follower, farRedCellToPark());
     }
 
+    private Command resetTimer(){
+        return instant(() -> timer.reset());
+    }
+
+    private Command setShooterRPM(){
+        return instant(() -> robot.shooter.setBaseTargetRPM(560));
+    }
+
+    private Command fullIntakeCommand(){
+        return instant(() -> robot.intake.fullIntake());
+    }
+
+
+
+    /*
+    private Command shoot(){
+        return infinite(() -> parallel(
+                setShooterRPM(),
+                fullIntakeCommand()
+                )
+
+        );
+
+
+    }
+    */
+
+
+    private Command updateShooterPID(){
+        return infinite(() -> robot.shooter.calculateShooterPID());
+    }
     // ------------
     // AutoRoutine
     // ------------
     private Command autoRoutine(){
-        return sequential(
-                goToNearRed(),
+        return  sequential(
+                goToFarRed(),
                 //add shoot
-                //waitMs(2000),
-                //robot.shooter.basicShoot(),
-                goToParkFromNearCell()
+                waitMs(waitTime),
+                goToParkFromFarCell()
         );
     }
 
 
 
-
+    ElapsedTime outOfSchedulerTimer = new ElapsedTime();
     @Override
     public void runOpMode() {
         Scheduler.reset();
@@ -78,9 +118,19 @@ public class NearRedBaseAuto extends LinearOpMode {
         robot = new Robot(hardwareMap);
         follower.setPose(startPos);
         Scheduler.schedule(autoRoutine());
+        outOfSchedulerTimer.reset();
         waitForStart();
+
         while (opModeIsActive()) {
             follower.update();
+
+            robot.shooter.setBaseTargetRPM(560);
+            if(outOfSchedulerTimer.seconds() > 7){
+                robot.intake.fullIntake();
+
+            }
+            robot.shooter.calculateShooterPID();
+
             Scheduler.execute();
 
             telemetry.update();

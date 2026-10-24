@@ -1,6 +1,5 @@
 package teamcode.OpModes.Auto.Base;
 
-import static com.pedropathing.api.Paths.curve;
 import static com.pedropathing.api.Paths.line;
 import static com.pedropathing.ivy.groups.Groups.sequential;
 import static com.pedropathing.ivy.pedro.PedroCommands.follow;
@@ -28,30 +27,31 @@ public class FarRedBaseAuto extends LinearOpMode {
     // -----
     // Poses
     // -----
-    private final Pose startPos = poseFactory.of(85, 139, 270);
-    private final Pose farCellShootPos = poseFactory.of(85, 109, 270);
-    private final Pose farShootToParkControl = poseFactory.of(129, 106, 0); //control point, so irrelevant heading
-    private final Pose park = poseFactory.of(134, 40, 270);
+    private final Pose startPos = poseFactory.of(107, 10, 90);
+    // check if the distance from the cell is the same for each side. It should be relatively simple and just measure
+    // the y difference
+    private final Pose nearCellShootPos = poseFactory.of(107, 30, 90);
+    private final Pose park = poseFactory.of(130, 30, 90);
 
     // -------
     // Paths
     // -------
-    private Path startToFarRedShoot() {
-        return line(startPos, farCellShootPos).linear(startPos, farCellShootPos);
+    private Path startToNearRedShoot() {
+        return line(startPos, nearCellShootPos).linear(startPos, nearCellShootPos);
     }
-    private Path farRedCellToPark() {
-        return curve(farCellShootPos, farShootToParkControl, park).linear(farCellShootPos, park);
+    private Path nearRedCellToPark() {
+        return line(nearCellShootPos, park).linear(nearCellShootPos, park);
     }
 
     // ---------
     // Commands
     // ---------
-    private Command goToFarRed() {
-        return follow(follower, startToFarRedShoot());
+    private Command goToNearRed() {
+        return follow(follower, startToNearRedShoot());
     }
 
-    private Command goToParkFromFarCell() {
-        return follow(follower, farRedCellToPark());
+    private Command goToParkFromNearCell() {
+        return follow(follower, nearRedCellToPark());
     }
 
     // ------------
@@ -59,10 +59,11 @@ public class FarRedBaseAuto extends LinearOpMode {
     // ------------
     private Command autoRoutine(){
         return sequential(
-                goToFarRed(),
+                goToNearRed(),
                 //add shoot
+                //waitMs(2000),
                 //robot.shooter.basicShoot(),
-                goToParkFromFarCell()
+                goToParkFromNearCell()
         );
     }
 
