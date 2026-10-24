@@ -27,7 +27,7 @@ public class FarBlueBaseAuto extends LinearOpMode {
     // -----
     // Poses
     // -----
-    private final Pose startPos = poseFactory.of(15, 133, 270);
+    private final Pose startPos = poseFactory.of(15, 135, 270);
     // check if the distance from the cell is the same for each side. It should be relatively simple and just measure
     // the y difference
     private final Pose midPos = poseFactory.of(58, 110, 270);

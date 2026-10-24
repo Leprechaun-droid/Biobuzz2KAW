@@ -11,11 +11,13 @@ import com.pedropathing.ivy.Command;
 import com.pedropathing.ivy.Scheduler;
 import com.pedropathing.math.Pose;
 import com.pedropathing.paths.Path;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+@Autonomous
 public class NearBlueBaseAuto extends LinearOpMode {
 
 
@@ -26,18 +28,18 @@ public class NearBlueBaseAuto extends LinearOpMode {
     // -----
     // Poses
     // -----
-    private final Pose startPos = poseFactory.of(56, 9, 90);
+    private final Pose startPos = poseFactory.of(8, 34, 0);
     // check if the distance from the cell is the same for each side. It should be relatively simple and just measure
     // the y difference
-    private final Pose nearCellShootPos = poseFactory.of(56, 34, 90);
+    private final Pose nearCellShootPos = poseFactory.of(56, 34, 0);
     private final Pose nearCellShootPosControl = poseFactory.of(11, 29, 0); //reminder: irrelevant control point heading
-    private final Pose park = poseFactory.of(9, 98, 90);
+    private final Pose park = poseFactory.of(17, 98, 0);
 
     // -------
     // Paths
     // -------
     private Path startToNearBlueShoot() {
-        return line(startPos, nearCellShootPos).linear(startPos, nearCellShootPos);
+        return line(startPos, nearCellShootPos).linear(startPos, nearCellShootPos, 0.4);
     }
     private Path nearBlueCellToPark() {
         return curve(nearCellShootPos, nearCellShootPosControl, park).linear(nearCellShootPos, park);
