@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import teamcode.RobotContainer.DriveProcesses;
+import teamcode.RobotContainer.Robot;
 import teamcode.Subsystems.Shooter;
 import teamcode.Subsystems.Turret;
 
@@ -32,12 +33,13 @@ public class kPShooterTuning extends LinearOpMode {
 
     private DriveProcesses driveProcesses;
 
-
+    private Robot robot;
 
     public void runOpMode(){
         shooter = new Shooter(hardwareMap);
         turret = new Turret(hardwareMap);
-        driveProcesses = new DriveProcesses(hardwareMap, gamepad1, gamepad2);
+        robot = new Robot(hardwareMap);
+        driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
 
         waitForStart();
         while(opModeIsActive()){

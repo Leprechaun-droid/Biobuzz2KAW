@@ -19,7 +19,8 @@ public class MainDrive extends LinearOpMode {
     @Override
     public void runOpMode(){
         robot = new Robot(hardwareMap);
-        driveProcesses = new DriveProcesses(hardwareMap, gamepad1, gamepad2);
+        // Pass the robot instance to DriveProcesses to share the same hardware state
+        driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
 
         double vertical;
         double horizontal;

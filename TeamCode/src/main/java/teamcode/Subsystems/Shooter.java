@@ -40,7 +40,7 @@ public class Shooter {
         //put tuning constants in class parameters when I make the PIDController class
         private DcMotorEx shooterMotor;
         //private DcMotorEx rightShooterMotor;
-        public int baseTargetRPM = 560;
+        public int baseTargetRPM = 0; // Initialize to 0 so it doesn't spin immediately
     public Shooter(HardwareMap hardwareMap) {
             shooterMotor = hardwareMap.get(DcMotorEx.class, "leftShooterMotor");
 
@@ -86,6 +86,8 @@ public class Shooter {
             double error = baseTargetRPM - getRPM();
             //double check the logic behind this
             double ff = (kV * baseTargetRPM) + kS;
+            if (baseTargetRPM == 0) ff = 0; // Don't apply kS if we aren't trying to spin
+            
             double fb = error * kP;
             double power = ff + fb;
 
@@ -180,4 +182,3 @@ public class Shooter {
 
 
 }
-

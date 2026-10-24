@@ -61,7 +61,7 @@ public class FarRedBaseAuto extends LinearOpMode {
         return sequential(
                 goToFarRed(),
                 //add shoot
-                robot.shooter.basicShoot(),
+                //robot.shooter.basicShoot(),
                 goToParkFromFarCell()
         );
     }

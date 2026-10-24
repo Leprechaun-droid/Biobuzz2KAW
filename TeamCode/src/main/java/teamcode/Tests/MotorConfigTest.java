@@ -44,24 +44,24 @@ public class MotorConfigTest extends LinearOpMode {
 
 
         while(opModeIsActive()){
-            if(gamepad1.dpadLeftWasPressed()){
+            if(gamepad1.dpad_left){
                 lf_motor.setPower(0.3);
                 lb_motor.setPower(0);
                 rf_motor.setPower(0);
                 rb_motor.setPower(0);
-            } else if(gamepad1.dpadRightWasPressed()){
+            } else if(gamepad1.dpad_right){
                 lf_motor.setPower(0);
                 lb_motor.setPower(0.3);
                 rf_motor.setPower(0);
                 rb_motor.setPower(0);
 
-            } else if(gamepad1.dpadUpWasPressed()){
+            } else if(gamepad1.dpad_down){
                 lf_motor.setPower(0);
                 lb_motor.setPower(0);
                 rf_motor.setPower(0.3);
                 rb_motor.setPower(0);
 
-            } else if(gamepad1.dpadDownWasPressed()){
+            } else if(gamepad1.dpad_up){
                 lf_motor.setPower(0);
                 lb_motor.setPower(0);
                 rf_motor.setPower(0);

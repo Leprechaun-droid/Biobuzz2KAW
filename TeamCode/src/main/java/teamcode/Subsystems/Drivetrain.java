@@ -47,8 +47,8 @@ public class Drivetrain {
     public void updateDriveMotorPowers(double vertical, double horizontal, double strafe){
 
         absTotalPower = Math.max((Math.abs(vertical) + Math.abs(horizontal) + Math.abs(strafe)), 1);
-        lf_motor_power = -vertical + horizontal - strafe;
-        lb_motor_power = -vertical + horizontal + strafe;
+        lf_motor_power = -vertical + horizontal + strafe;
+        lb_motor_power = -vertical + horizontal - strafe;
         rf_motor_power = -vertical - horizontal - strafe;
         rb_motor_power = -vertical - horizontal + strafe;
 

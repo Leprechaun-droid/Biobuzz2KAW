@@ -89,7 +89,7 @@ public class FarBlueBaseAuto extends LinearOpMode {
                 //go to park
 
                 goToFarBlue(),
-                robot.shooter.basicShoot(),
+                //robot.shooter.basicShoot(),
                 //Repeat 4 times
                     //if a certain RPM margin of error is reached, load a ball for shooting
 
@@ -112,9 +112,9 @@ public class FarBlueBaseAuto extends LinearOpMode {
         robot.vision.resetScanner();
         while (opModeIsActive()) {
             follower.update();
-            robot.vision.scanForClusters();
-            robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
-            robot.shooter.calculateShooterPID();
+            //robot.vision.scanForClusters();
+            //robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
+            //robot.shooter.calculateShooterPID();
             Scheduler.execute();
 
             telemetry.update();

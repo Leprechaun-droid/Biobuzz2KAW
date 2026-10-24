@@ -14,10 +14,10 @@ public class DriveProcesses {
     //IT SHOULD NOT BECAUSE THEY DO NOT CREATE AN INFINITE LOOP OF CALLING, BUT STILL
     private Robot robot;
 
-    public DriveProcesses(HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2){
+    public DriveProcesses(Robot robot, HardwareMap hardwareMap, Gamepad gamepad1, Gamepad gamepad2){
         this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
-        robot = new Robot(hardwareMap);
+        this.robot = robot;
 
     }
 
@@ -89,10 +89,10 @@ public class DriveProcesses {
             //add loadShooter when logic is finished
         } else if(fireBallCondition){
             //add timer
-            robot.turretGate.openGate();
+            //robot.turretGate.openGate();
             //wait a set number of seconds (probably about 0.6) then run loadShooter
 
-            loadShooter();
+            //loadShooter();
 
             //wait a second or two, then close the gate
 

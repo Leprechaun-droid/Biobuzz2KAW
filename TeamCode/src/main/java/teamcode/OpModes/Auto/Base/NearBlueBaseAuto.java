@@ -63,7 +63,7 @@ public class NearBlueBaseAuto extends LinearOpMode {
                 //add shoot
                 //change 1000 to targetRPM
                 //robot.vision.useAprilTagsToSetCellState(alliance),
-                robot.shooter.basicShoot(),
+                //robot.shooter.basicShoot(),
                 goToParkFromNearCell()
         );
     }
