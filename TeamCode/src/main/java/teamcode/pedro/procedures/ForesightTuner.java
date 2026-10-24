@@ -1,4 +1,7 @@
-package org.firstinspires.ftc.teamcode.pedro.procedures;
+package teamcode.pedro.procedures;
+
+import static com.pedropathing.utils.Utils.linearFit;
+import static com.pedropathing.utils.Utils.quadraticFit;
 
 import com.pedropathing.drivetrain.DrivePowers;
 import com.pedropathing.drivetrain.Drivetrain;
@@ -13,11 +16,11 @@ import com.pedropathing.utils.Utils;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Function;
-
-import static com.pedropathing.utils.Utils.linearFit;
-import static com.pedropathing.utils.Utils.quadraticFit;
 
 public class ForesightTuner extends Procedure {
     Function<HardwareMap, Localizer> localizerFunction;
@@ -137,7 +140,7 @@ class ForwardVelocity extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -152,10 +155,7 @@ class ForwardVelocity extends TuningOpMode<Double> {
             velocities.add(0.0);
         }
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
 
         while (!end) {
             localizer.update();
@@ -195,7 +195,7 @@ class StrafeVelocity extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -210,10 +210,7 @@ class StrafeVelocity extends TuningOpMode<Double> {
             velocities.add(0.0);
         }
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
 
         while (!end) {
             localizer.update();
@@ -258,7 +255,7 @@ class ForwardDeceleration extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -271,10 +268,7 @@ class ForwardDeceleration extends TuningOpMode<Double> {
         localizer.update();
 
         DrivePowers power = new DrivePowers(1, 0, 0);
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
 
         drivetrain.drive(power, false);
 
@@ -287,8 +281,6 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
                 stopping = true;
                 drivetrain.stop(false);
-            } else {
-                drivetrain.drive(power, false);
             }
         }
 
@@ -296,7 +288,6 @@ class ForwardDeceleration extends TuningOpMode<Double> {
 
         while (!end) {
             localizer.update();
-            drivetrain.stop(false);
             double currentVelocity = localizer.twist().toVector2D().x();
             long currentTimeNano = System.nanoTime();
             double dt = (currentTimeNano - previousTimeNano) / 1e9;
@@ -352,7 +343,7 @@ class StrafeDeceleration extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -365,10 +356,7 @@ class StrafeDeceleration extends TuningOpMode<Double> {
         localizer.update();
 
         DrivePowers power = new DrivePowers(0, 1, 0);
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
 
         drivetrain.drive(power, false);
 
@@ -381,15 +369,12 @@ class StrafeDeceleration extends TuningOpMode<Double> {
 
                 stopping = true;
                 drivetrain.stop(false);
-            } else {
-                drivetrain.drive(power, false);
             }
         }
 
         boolean end = false;
 
         while (!end) {
-            drivetrain.stop(false);
             localizer.update();
             double currentVelocity = localizer.twist().toVector2D().y();
             long currentTimeNano = System.nanoTime();
@@ -461,7 +446,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
     }
 
     @Override
-    protected List<Double> runTuningOpMode() throws InterruptedException {
+    protected List<Double> runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -472,10 +457,7 @@ class HeadingBraking extends TuningOpMode<List<Double>> {
 
         POWERS = biasedGradient(trials, maxPower, minPower, bias);
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
 
         while (state != State.DONE && !isStopRequested()) {
@@ -598,7 +580,7 @@ class HeadingTuner extends TuningOpMode<Double> {
     }
 
     @Override
-    protected Double runTuningOpMode() throws InterruptedException {
+    protected Double runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -611,10 +593,7 @@ class HeadingTuner extends TuningOpMode<Double> {
         vMax = 0;
         lastTime = 0.0;
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
@@ -639,8 +618,6 @@ class HeadingTuner extends TuningOpMode<Double> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
-                } else {
-                    drivetrain.drive(new DrivePowers(0.0, 0.0, POWER), false);
                 }
             }
         }
@@ -724,7 +701,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
     }
 
     @Override
-    protected List<Double> runTuningOpMode() throws InterruptedException {
+    protected List<Double> runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -735,10 +712,7 @@ class ForwardBraking extends TuningOpMode<List<Double>> {
 
         List<Double> coefficients = Collections.emptyList();
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
 
         drivetrain.drive(new DrivePowers(maxPower,0,0), false);
@@ -892,7 +866,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
     }
 
     @Override
-    protected List<Double> runTuningOpMode() throws InterruptedException {
+    protected List<Double> runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -903,10 +877,7 @@ class StrafeBraking extends TuningOpMode<List<Double>> {
 
         List<Double> coefficients = Collections.emptyList();
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
 
         drivetrain.drive(new DrivePowers(0,maxPower,0), false);
@@ -1051,7 +1022,7 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
     }
 
     @Override
-    protected List<Double> runTuningOpMode() throws InterruptedException {
+    protected List<Double> runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -1064,10 +1035,7 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
         vMax = 0;
         lastTime = 0.0;
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
@@ -1092,8 +1060,6 @@ class ForwardTranslational extends TuningOpMode<List<Double>> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
-                } else {
-                    drivetrain.drive(new DrivePowers(POWER, 0.0, 0.0), false);
                 }
             }
         }
@@ -1171,7 +1137,7 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
     }
 
     @Override
-    protected List<Double> runTuningOpMode() throws InterruptedException {
+    protected List<Double> runTuningOpMode() {
         Localizer localizer = localizerFunction.apply(hardwareMap);
         Drivetrain drivetrain = drivetrainFunction.apply(hardwareMap);
 
@@ -1184,10 +1150,7 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
         vMax = 0;
         lastTime = 0.0;
 
-        Thread.sleep(1000);
         waitForStart();
-        localizer.setPose(Pose.zero());
-        localizer.update();
         timer.reset();
         lastTime = timer.seconds();
         drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
@@ -1212,8 +1175,6 @@ class StrafeTranslational extends TuningOpMode<List<Double>> {
                     done = true;
                     systemIdentification();
                     drivetrain.drive(new DrivePowers(0.0, 0.0, 0.0), false);
-                } else {
-                    drivetrain.drive(new DrivePowers(0.0, POWER, 0.0), false);
                 }
             }
         }
