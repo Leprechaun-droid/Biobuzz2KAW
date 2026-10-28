@@ -178,7 +178,7 @@ public class Vision {
 
 
 
-
+    /*
     public double findCellDis(String targetCluster, double robotPosX, double robotPosY){
         double disX = 0;
         double disY = 0;
@@ -193,7 +193,7 @@ public class Vision {
 
 
     }
-
+    */
 
 
 
@@ -220,35 +220,6 @@ public class Vision {
 
 
 
-
-
-
-
-    /*
-
-    public void enableRedNectarLocator(){
-        visionPortal.setProcessorEnabled(redNectarLocator, true);
-    }
-
-    public void disableRedNectarLocator(){
-        visionPortal.setProcessorEnabled(redNectarLocator, false);
-    }
-    public void enableBlueNectarLocator(){
-        visionPortal.setProcessorEnabled(blueNectarLocator, true);
-    }
-
-    public void disableBlueNectarLocator(){
-        visionPortal.setProcessorEnabled(blueNectarLocator, false);
-    }
-
-
-    public void enablePollenLocator(){
-        visionPortal.setProcessorEnabled(pollenLocator, true);
-    }
-    public void disablePollenLocator(){
-        visionPortal.setProcessorEnabled(pollenLocator, false);
-    }
-    */
 
 
 

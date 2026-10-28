@@ -2,17 +2,35 @@ package teamcode.OpModes.TeleOp;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.DriveProcesses;
 import teamcode.RobotContainer.Robot;
+import teamcode.pedro.Constants;
 
 
 @TeleOp
 public class MainDrive extends LinearOpMode {
 
 
+    PoseStorage poseStorage = new PoseStorage();
+    Follower driveFollower;
+
+
+    /*
+        - CREATE POSITIONS FOR THE CELLS EITHER IN THIS CLASS OR IN ANOTHER ONE
+        THAT HANDLES THE MATH
+    */
+
+
+    private double drivePosX;
+    private double drivePosY;
+    private double driveHeading;
+    private Pose driveStartPose;
 
 
     private Robot robot;
@@ -21,8 +39,23 @@ public class MainDrive extends LinearOpMode {
     @Override
     public void runOpMode(){
         robot = new Robot(hardwareMap);
+
         // Pass the robot instance to DriveProcesses to share the same hardware state
         driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
+
+
+        drivePosX = poseStorage.getPosX();
+        drivePosY = poseStorage.getPosY();
+        driveHeading = poseStorage.getRobotHeading();
+
+        driveStartPose = new Pose(drivePosX, drivePosY, driveHeading);
+
+
+        //Create Follower
+            driveFollower = Constants.create(hardwareMap);
+            //check if I can create the pos here and if it starts with
+            driveFollower.setPose(driveStartPose);
+
 
         double vertical;
         double horizontal;
@@ -43,6 +76,13 @@ public class MainDrive extends LinearOpMode {
             vertical = gamepad1.left_stick_y;
             horizontal = gamepad1.right_stick_x;
             strafe = gamepad1.left_stick_x;
+
+
+            driveFollower.update();
+
+
+
+
 
             //constant processes
             //robot.vision.scanForClusters();

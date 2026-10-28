@@ -35,14 +35,14 @@ public class NearRedBaseAuto extends LinearOpMode {
     private final PoseFactory poseFactory = PoseFactory.degrees();
     private ElapsedTime timer = new ElapsedTime();
 
-    public static double waitTime = 3000;
+    public static double waitTime = 9000;
 
     // -----
     // Poses
     // -----
     private final Pose startPos = poseFactory.of(133, 108, 180);
     private final Pose farCellShootPos = poseFactory.of(120, 130, 180);
-    private final Pose park = poseFactory.of(134, 40, 180);
+    private final Pose park = poseFactory.of(128, 40, 180);
 
     // -------
     // Paths
@@ -123,13 +123,20 @@ public class NearRedBaseAuto extends LinearOpMode {
 
         while (opModeIsActive()) {
             follower.update();
-
             robot.shooter.setBaseTargetRPM(560);
-            if(outOfSchedulerTimer.seconds() > 7){
+
+            if(outOfSchedulerTimer.seconds() > 3 && outOfSchedulerTimer.seconds() < 5) {
                 robot.intake.fullIntake();
 
+            } else if (outOfSchedulerTimer.seconds() > 5 && outOfSchedulerTimer.seconds() < 7){
+                robot.intake.zeroIntake();
+                robot.intake.zeroTransfer();
+            } else if (outOfSchedulerTimer.seconds() > 7 && outOfSchedulerTimer.seconds() < 9){
+                robot.intake.fullIntake();
             }
+
             robot.shooter.calculateShooterPID();
+
 
             Scheduler.execute();
 

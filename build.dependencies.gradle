@@ -6,6 +6,10 @@ repositories {
 }
 
 dependencies {
+    // --------------------------------------------
+    // DO NOT UPDATE UNLESS ABSOLUTELY NEEDED!!!!!!
+    // --------------------------------------------
+
     implementation 'org.firstinspires.ftc:Inspection:12.0.0'
     implementation 'org.firstinspires.ftc:Blocks:12.0.0'
     implementation 'org.firstinspires.ftc:RobotCore:12.0.0'
@@ -21,8 +25,13 @@ dependencies {
 
     implementation 'com.pedropathing.ivy:pedro:1.1.1'
 
-    implementation 'com.acmerobotics.dashboard:dashboard:0.6.0'
+    //implementation 'com.acmerobotics.dashboard:dashboard:0.6.0'
 
 
 
 }
+
+
+
+
+
