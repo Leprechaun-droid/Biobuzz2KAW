@@ -3,12 +3,14 @@ package teamcode.RobotContainer;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
+
 public class DriveProcesses {
 
     Gamepad gamepad1;
     Gamepad gamepad2;
     //add fullIntakeConditionRPM as a velocity the flywheel must reach before the shooter runs (the pid target RPM)
-    int targetRPM = 560;
+    int targetRPM = 2240;
 
     //KEEP TRACK OF THIS; I AM UNSURE IF CALLING THIS BOTH IN HERE AND IN THE OPMODE WILL CAUSE ISSUES (CALLING IT TWICE)
     //IT SHOULD NOT BECAUSE THEY DO NOT CREATE AN INFINITE LOOP OF CALLING, BUT STILL
@@ -105,6 +107,7 @@ public class DriveProcesses {
     }
 
 
+
     public void turretDriveUpdate(){
         //add control
         //find control for activating the turret
@@ -112,11 +115,9 @@ public class DriveProcesses {
 
 
 
-        if(turretCondition){
-            robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
-        } else {
-            //add logic to set turret Pos to 0
-        }
+
+
+
 
 
 
@@ -124,6 +125,7 @@ public class DriveProcesses {
 
 
     }
+
 
 
 

@@ -90,8 +90,9 @@ public class MainDrive extends LinearOpMode {
 
             //update PID
             robot.shooter.calculateShooterPID();
-            //robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
+            //robot.turret.calculateTurretPIDPower();
             //robot.turret.slipRing();
+
 
             //updateSubsystems
             driveProcesses.intakeDriveUpdate();
@@ -121,6 +122,7 @@ public class MainDrive extends LinearOpMode {
             telemetry.update();
             //telemetry.addData("robotPose", "%2f, %2f", follower.pose().x(), follower.pose().y());
 
+            poseStorage.savePoseToStorage(driveFollower.pose().x(), driveFollower.pose().y(), driveFollower.pose().heading());
 
         }
     }

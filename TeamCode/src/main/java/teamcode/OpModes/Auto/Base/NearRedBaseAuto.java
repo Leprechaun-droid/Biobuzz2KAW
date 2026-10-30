@@ -123,7 +123,7 @@ public class NearRedBaseAuto extends LinearOpMode {
 
         while (opModeIsActive()) {
             follower.update();
-            robot.shooter.setBaseTargetRPM(560);
+            robot.shooter.setBaseTargetRPM(2240);
 
             if(outOfSchedulerTimer.seconds() > 3 && outOfSchedulerTimer.seconds() < 5) {
                 robot.intake.fullIntake();
