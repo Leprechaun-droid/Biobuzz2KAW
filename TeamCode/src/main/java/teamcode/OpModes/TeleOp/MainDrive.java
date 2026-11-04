@@ -27,9 +27,9 @@ public class MainDrive extends LinearOpMode {
     */
 
 
-    private double drivePosX;
-    private double drivePosY;
-    private double driveHeading;
+    private double startDrivePosX;
+    private double startDrivePosY;
+    private double startDriveHeading;
     private Pose driveStartPose;
 
 
@@ -44,11 +44,11 @@ public class MainDrive extends LinearOpMode {
         driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
 
 
-        drivePosX = poseStorage.getPosX();
-        drivePosY = poseStorage.getPosY();
-        driveHeading = poseStorage.getRobotHeading();
+        startDrivePosX = poseStorage.getPosX();
+        startDrivePosY = poseStorage.getPosY();
+        startDriveHeading = poseStorage.getRobotHeading();
 
-        driveStartPose = new Pose(drivePosX, drivePosY, driveHeading);
+        driveStartPose = new Pose(startDrivePosX, startDrivePosY, startDriveHeading);
 
 
         //Create Follower
@@ -79,18 +79,15 @@ public class MainDrive extends LinearOpMode {
 
 
             driveFollower.update();
+            poseStorage.savePoseToStorage(driveFollower.pose().x(), driveFollower.pose().y(), driveFollower.pose().heading());
 
 
-
-
-
-            //constant processes
-            //robot.vision.scanForClusters();
 
 
             //update PID
             robot.shooter.calculateShooterPID();
-            //robot.turret.calculateTurretPIDPower();
+            robot.turret.updateTurretTarget();
+            robot.turret.calculateTurretPIDPower(poseStorage.getPosX(), poseStorage.getPosY(), poseStorage.getRobotHeading(), robot.turret.getTurretHeading());
             //robot.turret.slipRing();
 
 
@@ -115,6 +112,7 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("ShooterRPM", robot.shooter.getRPM());
             telemetry.addData("CurrentCluster", robot.vision.getCurrentCluster());
             telemetry.addData("Target RPM", robot.shooter.getTargetRPM());
+            telemetry.addData("TurretHeadingDegrees", robot.turret.getTurretHeading());
 
 
             //telemetry.addData("shooterPower", shooter.getShooterPower());
@@ -122,7 +120,6 @@ public class MainDrive extends LinearOpMode {
             telemetry.update();
             //telemetry.addData("robotPose", "%2f, %2f", follower.pose().x(), follower.pose().y());
 
-            poseStorage.savePoseToStorage(driveFollower.pose().x(), driveFollower.pose().y(), driveFollower.pose().heading());
 
         }
     }

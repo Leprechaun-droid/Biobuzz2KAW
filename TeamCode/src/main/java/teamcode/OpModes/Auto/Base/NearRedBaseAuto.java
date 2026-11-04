@@ -22,6 +22,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
@@ -33,10 +34,8 @@ public class NearRedBaseAuto extends LinearOpMode {
     private Follower follower;
     private Robot robot;
     private final PoseFactory poseFactory = PoseFactory.degrees();
-    private ElapsedTime timer = new ElapsedTime();
 
-    public static double waitTime = 9000;
-
+    private PoseStorage poseStorage;
     // -----
     // Poses
     // -----
@@ -65,12 +64,10 @@ public class NearRedBaseAuto extends LinearOpMode {
         return follow(follower, farRedCellToPark());
     }
 
-    private Command resetTimer(){
-        return instant(() -> timer.reset());
-    }
+
 
     private Command setShooterRPM(){
-        return instant(() -> robot.shooter.setBaseTargetRPM(560));
+        return instant(() -> robot.shooter.setBaseTargetRPM(2240));
     }
 
     private Command fullIntakeCommand(){
@@ -103,37 +100,28 @@ public class NearRedBaseAuto extends LinearOpMode {
         return  sequential(
                 goToFarRed(),
                 //add shoot
-                waitMs(waitTime),
                 goToParkFromFarCell()
         );
     }
 
 
 
-    ElapsedTime outOfSchedulerTimer = new ElapsedTime();
     @Override
     public void runOpMode() {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
+        poseStorage = new PoseStorage();
+        poseStorage.setAlliance(PoseStorage.Alliance.RED);
         follower.setPose(startPos);
         Scheduler.schedule(autoRoutine());
-        outOfSchedulerTimer.reset();
         waitForStart();
 
         while (opModeIsActive()) {
+
             follower.update();
             robot.shooter.setBaseTargetRPM(2240);
 
-            if(outOfSchedulerTimer.seconds() > 3 && outOfSchedulerTimer.seconds() < 5) {
-                robot.intake.fullIntake();
-
-            } else if (outOfSchedulerTimer.seconds() > 5 && outOfSchedulerTimer.seconds() < 7){
-                robot.intake.zeroIntake();
-                robot.intake.zeroTransfer();
-            } else if (outOfSchedulerTimer.seconds() > 7 && outOfSchedulerTimer.seconds() < 9){
-                robot.intake.fullIntake();
-            }
 
             robot.shooter.calculateShooterPID();
 

@@ -14,6 +14,7 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
@@ -23,6 +24,7 @@ public class FarBlueBaseAuto extends LinearOpMode {
 
     private Follower follower;
     private Robot robot;
+    private PoseStorage poseStorage;
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
     // -----
@@ -59,7 +61,7 @@ public class FarBlueBaseAuto extends LinearOpMode {
     // ------------
     // AutoRoutine
     // ------------
-    private Command autoRoutine(Robot.Alliance alliance){
+    private Command autoRoutine(PoseStorage.Alliance alliance){
         return sequential(
                 goToNearBlue(),
                 //add shoot
@@ -78,10 +80,14 @@ public class FarBlueBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
+        poseStorage = new PoseStorage();
         follower.setPose(startPos);
-        robot.setAlliance(Robot.Alliance.BLUE);
-        Scheduler.schedule(autoRoutine(robot.getAlliance()));
+        poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
+        Scheduler.schedule(autoRoutine(poseStorage.getAlliance()));
+
+
         waitForStart();
+
         while (opModeIsActive()) {
             follower.update();
             Scheduler.execute();
@@ -90,6 +96,9 @@ public class FarBlueBaseAuto extends LinearOpMode {
             telemetry.addData("Robot PosX", follower.pose().x());
             telemetry.addData("Robot PosY", follower.pose().y());
             telemetry.addData("Robot Heading", follower.pose().heading());
+
+
+            //may need to add something to zero the turret so it saves easier to teleOp
 
         }
 

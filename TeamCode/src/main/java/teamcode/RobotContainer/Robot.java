@@ -11,8 +11,7 @@ import teamcode.Subsystems.Vision;
 
 public class Robot {
 
-    public enum Alliance {RED, BLUE, NONE}
-    private Alliance alliance = Alliance.NONE;
+
 
     //public Follower follower;
 
@@ -23,6 +22,9 @@ public class Robot {
     public Shooter shooter;
     public Turret turret;
     public TurretGate turretGate;
+
+
+
 
     //intake & transfer is 2nd
     //drive & shoot is 1st
@@ -55,10 +57,7 @@ public class Robot {
 
 
 
-    public void setAlliance(Alliance newAlliance){
-        alliance = newAlliance;
-    }
-    public Alliance getAlliance(){return alliance;}
+
 
     //public void initRobotFollower(HardwareMap hardwareMap, Pose startPos){
     //    follower = Constants.create(hardwareMap);

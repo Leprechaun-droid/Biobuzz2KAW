@@ -13,6 +13,7 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
@@ -23,6 +24,7 @@ public class NearBlueBaseAuto extends LinearOpMode {
     private Follower follower;
     private Robot robot;
     private final PoseFactory poseFactory = PoseFactory.degrees();
+    private PoseStorage poseStorage;
 
     // -----
     // Poses
@@ -98,6 +100,8 @@ public class NearBlueBaseAuto extends LinearOpMode {
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
         follower.setPose(startPos);
+        poseStorage = new PoseStorage();
+        poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
         Scheduler.schedule(autoRoutine());
         waitForStart();
 

@@ -2,11 +2,15 @@ package teamcode.ComplexMath.Storage;
 
 public class PoseStorage {
 
-
-    //volatile saves across threads, static keeps it constant across all classes
+    // volatile saves across threads, static keeps it constant across all classes
     private static volatile double PosX = 0;
     private static volatile double PosY = 0;
     private static volatile double robotHeading = 0;
+    //use this so the turretHeading also saves across autos to teleOps, or I could just set the position as 0 at the end of auto.
+    private static volatile double turretHeading = 0;
+
+    public enum Alliance {RED, BLUE, NONE}
+    private static volatile Alliance alliance;
 
 
 
@@ -31,6 +35,11 @@ public class PoseStorage {
 
     }
 
+
+    public void setAlliance(Alliance newAlliance){
+        alliance = newAlliance;
+    }
+    public Alliance getAlliance(){return alliance;}
 
 
 

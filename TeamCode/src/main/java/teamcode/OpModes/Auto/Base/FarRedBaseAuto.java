@@ -13,6 +13,7 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
@@ -23,6 +24,7 @@ public class FarRedBaseAuto extends LinearOpMode {
     private Follower follower;
     private Robot robot;
     private final PoseFactory poseFactory = PoseFactory.degrees();
+    private PoseStorage poseStorage;
 
     // -----
     // Poses
@@ -59,6 +61,24 @@ public class FarRedBaseAuto extends LinearOpMode {
     // ------------
     private Command autoRoutine(){
         return sequential(
+
+                //go to shootPos
+                    //run revShooter in parallel
+                    //run calculateTurretPosition in parallel the entire time, make sure it starts set to 0
+                //once at shootPos, intake balls
+                    //intake trans, then frontIntake, then both
+                    //wait a set amount of time (could use a deadline or similar command to not continue until the time has passed)
+                //turn
+                //move to garden to collect from garden
+
+
+
+
+
+
+
+
+
                 goToNearRed(),
                 //add shoot
                 //waitMs(2000),
@@ -75,7 +95,9 @@ public class FarRedBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
+        poseStorage = new PoseStorage();
         follower.setPose(startPos);
+        poseStorage.setAlliance(PoseStorage.Alliance.RED);
         Scheduler.schedule(autoRoutine());
         waitForStart();
         while (opModeIsActive()) {
