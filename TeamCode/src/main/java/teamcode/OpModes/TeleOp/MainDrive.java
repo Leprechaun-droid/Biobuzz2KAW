@@ -112,7 +112,13 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("ShooterRPM", robot.shooter.getRPM());
             telemetry.addData("CurrentCluster", robot.vision.getCurrentCluster());
             telemetry.addData("Target RPM", robot.shooter.getTargetRPM());
-            telemetry.addData("TurretHeadingDegrees", robot.turret.getTurretHeading());
+            telemetry.addData("Position", "%.1f, %.1f, %.1f deg",
+                    poseStorage.getPosX(), poseStorage.getPosY(), Math.toDegrees(poseStorage.getRobotHeading()));
+            telemetry.addData("alliance", poseStorage.getAlliance());
+            telemetry.addData("targetPosX", robot.turret.getTurretTargetX());
+            telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
+            telemetry.addData("turret heading", robot.turret.getTurretHeading());
+            telemetry.addData("turret ticks", robot.turret.getTurretPos());
 
 
             //telemetry.addData("shooterPower", shooter.getShooterPower());

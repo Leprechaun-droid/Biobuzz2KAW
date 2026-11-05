@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import teamcode.ComplexMath.Storage.PoseStorage;
-import teamcode.RobotContainer.Robot;
 
 public class Turret {
 
@@ -25,14 +24,23 @@ public class Turret {
 
     public Turret(HardwareMap hardwareMap){
         turretPinionMotor = hardwareMap.get(DcMotorEx.class, "turretPinion");
-        
+
+        // Direction has to be set before the encoder reset. REVERSE flips power
+        // and the encoder together, so positive heading still matches positive power.
+        turretPinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretPinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
         // Reset encoder to 0 at start. Point turret forward before hitting INIT.
+        // STOP_AND_RESET is sticky if RUN_WITHOUT_ENCODER is not applied again,
+        // and a stuck reset reports 0 ticks while the motor keeps spinning.
         turretPinionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
 
-        turretPinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        
-        turretPinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+    private void ensureEncoderTracking() {
+        if (turretPinionMotor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
+            turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
     }
 
     String targetCell;
@@ -72,12 +80,19 @@ public class Turret {
             turretTargetX = 0;
             turretTargetY = 0;
         }
-
-
-
     }
 
     public void calculateTurretPIDPower(double posX, double posY, double robotHeading, double turretHeading){
+        ensureEncoderTracking();
+
+        PoseStorage.Alliance alliance = new PoseStorage().getAlliance();
+        if (alliance == null || alliance == PoseStorage.Alliance.NONE) {
+            power = 0;
+            lastError = 0;
+            turretPinionMotor.setPower(0);
+            return;
+        }
+
         double deltaTime = timer.seconds();
         timer.reset();
 
@@ -105,8 +120,8 @@ public class Turret {
             power = Range.clip(pTerm + dTerm, -0.6, 0.6);
         }
 
-        turretPinionMotor.setPower(power);
         lastError = error;
+        slipRing();
     }
 
     // Shortest path logic: keeps values between -180 and 180
@@ -121,7 +136,7 @@ public class Turret {
     final double turretGearRatio = turntableGearTeeth / pinionGearTeeth;
 
     public void slipRing() {
-        // GoBilda 6000 RPM motor = 28 ticks per revolution
+        // goBILDA 435 RPM motor: 384.5 counts per motor-output revolution.
         double ticksPerTurretRev = 384.5 * turretGearRatio;
         double turretDegreePos = (turretPinionMotor.getCurrentPosition() / ticksPerTurretRev) * 360.0;
 
@@ -140,9 +155,9 @@ public class Turret {
 
 
     public double getTurretHeading(){
-        //should return in degrees
-        //make TICKS_PER_REV from denominator
-        return turretPinionMotor.getCurrentPosition()/(384.5 * turretGearRatio) * 360;
+        ensureEncoderTracking();
+        // Degrees. 384.5 is the 435 RPM motor count, then the pinion-to-turntable ratio.
+        return turretPinionMotor.getCurrentPosition() / (384.5 * turretGearRatio) * 360;
     }
 
     public void setTurretPD(double newkP, double newKD){
@@ -166,8 +181,7 @@ public class Turret {
 
 
     public double getTurretPos(){
-
+        ensureEncoderTracking();
         return turretPinionMotor.getCurrentPosition();
-
     }
 }

@@ -10,7 +10,7 @@ public class PoseStorage {
     private static volatile double turretHeading = 0;
 
     public enum Alliance {RED, BLUE, NONE}
-    private static volatile Alliance alliance;
+    private static volatile Alliance alliance = Alliance.NONE;
 
 
 
