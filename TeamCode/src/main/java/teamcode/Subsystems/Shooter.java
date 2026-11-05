@@ -67,12 +67,11 @@ public class Shooter {
 
 
         public double getRPM(){
-        //FIND ENCODER CPM; look in brogan pratt video for encoderCPM definition (should already be open); flywheel is 6000RPM motor
+            // goBILDA 6000 RPM motor on the flywheel. 28 counts per motor revolution.
+            // The 435 RPM motor (384.5 counts) is the turret, not this shooter.
             double gearRatio = 1;
-            //find encoderCPM (encoder counts per motor revolution)
             double ticksPerRev = 28;
 
-            //GearRatio is redundant, but I am leaving it here for future reference
             double TICKS_PER_FLYWHEEL_REVOLUTION = ticksPerRev * gearRatio;
             return (getTicksPerSec()/ TICKS_PER_FLYWHEEL_REVOLUTION) * 60;
 
