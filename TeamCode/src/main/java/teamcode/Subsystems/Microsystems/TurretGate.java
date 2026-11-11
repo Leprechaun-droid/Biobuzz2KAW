@@ -16,13 +16,15 @@ public class TurretGate {
 
     private final double openGatePos = 0;
     private final double closeGatePos = 1;
-    public void openGate(){
+    public void moveGateToOpenPos(){
+        //may need to add a condition not to open unless RPM is within an acceptable
+            //margin of error
         turretGate.setPosition(openGatePos);
 
     }
 
 
-    public void closeGate(){
+    public void moveGateToClosePos() {
         turretGate.setPosition(closeGatePos);
     }
 

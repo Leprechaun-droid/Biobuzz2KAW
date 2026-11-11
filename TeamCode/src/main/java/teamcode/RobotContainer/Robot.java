@@ -3,6 +3,7 @@ package teamcode.RobotContainer;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import teamcode.Subsystems.Intake;
+import teamcode.Subsystems.Microsystems.MatchLoader;
 import teamcode.Subsystems.Microsystems.TurretGate;
 import teamcode.Subsystems.Shooter;
 import teamcode.Subsystems.Turret;
@@ -22,6 +23,7 @@ public class Robot {
     public Shooter shooter;
     public Turret turret;
     public TurretGate turretGate;
+    public MatchLoader matchLoader;
 
 
 
@@ -41,11 +43,11 @@ public class Robot {
 
         /*
         Eventually create discrete Subsystems and Microsystems 'hub' classes to keep the objects more organized. I
-        am not doing that for meet 1 because it will take time I don't have.
+        am not doing that for meet 2 because it will take time I don't have.
         */
 
         turretGate = new TurretGate(hardwareMap);
-
+        matchLoader = new MatchLoader(hardwareMap);
 
     }
 

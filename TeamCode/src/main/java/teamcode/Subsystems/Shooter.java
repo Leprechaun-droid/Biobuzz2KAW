@@ -103,24 +103,6 @@ public class Shooter {
 
 
 
-
-
-
-
-
-
-    //Auto Commands
-    public Command basicShoot(){return Commands.instant(() -> setBaseTargetRPM(1000));}
-    public Command zeroShoot(){return Commands.instant(() -> setBaseTargetRPM(0));}
-
-
-
-
-
-
-
-
-
     public int getTargetRPM(){
         return baseTargetRPM;
 

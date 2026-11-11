@@ -22,6 +22,7 @@ public class PoseStorage {
     }
 
     public double getPosX(){
+
         return PosX;
     }
 
@@ -37,9 +38,12 @@ public class PoseStorage {
 
 
     public void setAlliance(Alliance newAlliance){
+
         alliance = newAlliance;
     }
-    public Alliance getAlliance(){return alliance;}
+    public Alliance getAlliance(){
+        return alliance;
+    }
 
 
 

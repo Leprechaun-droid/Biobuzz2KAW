@@ -31,6 +31,7 @@ public class TestAllianceStorage {
     }
 
     public Pose getTestPose(){
+
         return new Pose(PosX, PosY, Heading);
     }
 

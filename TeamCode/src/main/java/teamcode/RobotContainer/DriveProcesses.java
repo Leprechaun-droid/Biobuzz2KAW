@@ -59,7 +59,7 @@ public class DriveProcesses {
         } else if(stopFullIntakeAndShooterCondition){
             robot.intake.zeroIntake();
             robot.intake.zeroTransfer();
-            robot.shooter.zeroShoot(); //see if I can remove this
+            //robot.shooter.zeroShoot(); //see if I can remove this
             //add stop flywheel after consulting second driver
         } else if (justTransIntakeCondition){
             robot.intake.zeroIntake();
@@ -70,7 +70,7 @@ public class DriveProcesses {
         } else if (gamepad2.atRest()){
             robot.intake.zeroIntake();
             robot.intake.zeroTransfer();
-            robot.shooter.zeroShoot();
+            //robot.shooter.zeroShoot();
 
 
         }

@@ -18,7 +18,7 @@ public class PositionTurretTest extends LinearOpMode {
 
     @Override
     public void runOpMode(){
-       Robot robot = new Robot(hardwareMap);
+        Robot robot = new Robot(hardwareMap);
         Follower follower = Constants.create(hardwareMap);
         PoseStorage poseStorage = new PoseStorage();
         poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
@@ -34,10 +34,13 @@ public class PositionTurretTest extends LinearOpMode {
             double horizontal = gamepad1.right_stick_x;
             double strafe = gamepad1.left_stick_x;
 
-            robot.turret.updateTurretTarget();
+            robot.turret.updateTurretTarget(follower.pose().y());
             robot.turret.calculateTurretPIDPower(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret.getTurretHeading());
 
             robot.drivetrain.updateDriveMotorPowers(vertical, horizontal, strafe);
+
+
+
 
             telemetry.addData("Position", "%.1f, %.1f, %.1f deg",
                     poseStorage.getPosX(), poseStorage.getPosY(), Math.toDegrees(poseStorage.getRobotHeading()));
@@ -46,6 +49,9 @@ public class PositionTurretTest extends LinearOpMode {
             telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
             telemetry.addData("turret heading", robot.turret.getTurretHeading());
             telemetry.addData("turret ticks", robot.turret.getTurretPos());
+            telemetry.addData("TurretTargetX: ", robot.turret.getTurretTargetX());
+            telemetry.addData("TurretTargetY: ", robot.turret.getTurretTargetY());
+            telemetry.addData("TurretTargetHeading: ", robot.turret.getTurretHeading());
 
             telemetry.update();
 

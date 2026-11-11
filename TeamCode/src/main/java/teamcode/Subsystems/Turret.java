@@ -27,7 +27,7 @@ public class Turret {
 
         // Direction has to be set before the encoder reset. REVERSE flips power
         // and the encoder together, so positive heading still matches positive power.
-        turretPinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        turretPinionMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         turretPinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reset encoder to 0 at start. Point turret forward before hitting INIT.
@@ -47,10 +47,9 @@ public class Turret {
     private static volatile double turretTargetX;
     private static volatile double turretTargetY;
 
-    public void updateTurretTarget(){
+    public void updateTurretTarget(double y){
         PoseStorage poseStorage = new PoseStorage();
         PoseStorage.Alliance alliance = poseStorage.getAlliance();
-        double y = poseStorage.getPosY();
 
         // Target coordinates based on alliance and position
         if(alliance == PoseStorage.Alliance.RED) {
@@ -113,11 +112,12 @@ public class Turret {
         // It acts as a brake when we approach the target quickly.
         double dTerm = (deltaTime > 0) ? (error - lastError) / deltaTime * kD : 0;
 
-        double headingOffsetTolerance = 0.8; // Tolerance in degrees
+        //tune offset tolerance
+        double headingOffsetTolerance = 10; // Tolerance in degrees
         if(Math.abs(error) < headingOffsetTolerance){
             power = 0;
         } else {
-            power = Range.clip(pTerm + dTerm, -0.6, 0.6);
+            power = Range.clip(pTerm + dTerm, -0.4, 0.4);
         }
 
         lastError = error;
@@ -144,10 +144,11 @@ public class Turret {
         
         // Soft Limit Logic:
         // We only cut power if we are past the limit AND trying to turn further in that direction.
+        // tune the power values
         if (turretDegreePos > limit && power > 0) {
-            power = 0;
+            power = -0.09;
         } else if (turretDegreePos < -limit && power < 0) {
-            power = 0;
+            power = 0.09;
         }
         
         turretPinionMotor.setPower(power);
@@ -157,7 +158,7 @@ public class Turret {
     public double getTurretHeading(){
         ensureEncoderTracking();
         // Degrees. 384.5 is the 435 RPM motor count, then the pinion-to-turntable ratio.
-        return turretPinionMotor.getCurrentPosition() / (384.5 * turretGearRatio) * 360;
+        return (turretPinionMotor.getCurrentPosition() / (384.5 * turretGearRatio)) * 360;
     }
 
     public void setTurretPD(double newkP, double newKD){

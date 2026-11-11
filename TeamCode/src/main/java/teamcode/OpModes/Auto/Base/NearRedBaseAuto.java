@@ -66,13 +66,8 @@ public class NearRedBaseAuto extends LinearOpMode {
 
 
 
-    private Command setShooterRPM(){
-        return instant(() -> robot.shooter.setBaseTargetRPM(2240));
-    }
 
-    private Command fullIntakeCommand(){
-        return instant(() -> robot.intake.fullIntake());
-    }
+
 
 
 
@@ -90,9 +85,7 @@ public class NearRedBaseAuto extends LinearOpMode {
     */
 
 
-    private Command updateShooterPID(){
-        return infinite(() -> robot.shooter.calculateShooterPID());
-    }
+
     // ------------
     // AutoRoutine
     // ------------

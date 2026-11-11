@@ -24,8 +24,8 @@ public class AllianceTestTeleOp extends LinearOpMode {
                 telemetry.addLine("No Alliance");
             }
 
-            telemetry.addData("Pose", testAllianceStorage.getTestPose());
-
+            telemetry.addData("Pose: ", testAllianceStorage.getTestPose());
+            telemetry.addData("SavedPose: ", testAllianceStorage.getTestPose());
 
 
         }
