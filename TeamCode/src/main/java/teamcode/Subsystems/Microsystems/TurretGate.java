@@ -28,6 +28,18 @@ public class TurretGate {
         turretGate.setPosition(closeGatePos);
     }
 
+    public double getGatePos(){
+        return turretGate.getPosition();
+    }
+    public double getOpenGatePos(){
+        return openGatePos;
+    }
+
+    public double getCloseGatePos(){
+        return closeGatePos;
+    }
+
+
 
 
 }

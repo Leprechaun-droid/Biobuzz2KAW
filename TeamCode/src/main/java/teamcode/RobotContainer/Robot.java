@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import teamcode.Subsystems.Intake;
 import teamcode.Subsystems.Microsystems.MatchLoader;
 import teamcode.Subsystems.Microsystems.TurretGate;
+import teamcode.Subsystems.Microsystems.TurretHood;
 import teamcode.Subsystems.Shooter;
 import teamcode.Subsystems.Turret;
 import teamcode.Subsystems.Drivetrain;
@@ -25,7 +26,7 @@ public class Robot {
     public TurretGate turretGate;
     public MatchLoader matchLoader;
 
-
+    public TurretHood turretHood;
 
 
     //intake & transfer is 2nd
@@ -48,6 +49,7 @@ public class Robot {
 
         turretGate = new TurretGate(hardwareMap);
         matchLoader = new MatchLoader(hardwareMap);
+        turretHood = new TurretHood(hardwareMap);
 
     }
 

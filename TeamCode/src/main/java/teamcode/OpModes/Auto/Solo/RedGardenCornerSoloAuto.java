@@ -144,6 +144,7 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                                         waitMs(2000)
                                 ),
                                 subsystemCommands.updateShooterRPM()
+                                //add update hood position
                         ),
 
                         // close gate so the intake when collecting from garden does not
@@ -179,6 +180,7 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                                 ),
 
                                 subsystemCommands.updateShooterRPM()
+                                //add update hood position
 
                         ),
                         subsystemCommands.closeGate(),

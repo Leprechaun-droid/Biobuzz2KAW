@@ -16,11 +16,13 @@ public class Turret {
     // kD is the "damping" that prevents overshooting.
     private double kP = 0.015;
     private double kD = 0.001;
-    double power = 0;
 
-    private double lastError = 0;
-    private final ElapsedTime timer = new ElapsedTime();
+    private double turretLimit = 110;
+    private double limitPushBack = 0.1;
+
     DcMotorEx turretPinionMotor;
+    PoseStorage poseStorage = new PoseStorage();
+    PoseStorage.Alliance alliance;
 
     public Turret(HardwareMap hardwareMap){
         turretPinionMotor = hardwareMap.get(DcMotorEx.class, "turretPinion");
@@ -37,19 +39,23 @@ public class Turret {
         turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
-    private void ensureEncoderTracking() {
-        if (turretPinionMotor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER) {
+    private boolean isTurretModeSet = false;
+    private void ensureTurretEncoderIsSet(){
+        //checking a boolean value saves more
+        //using this when it is redundant strains the CPu, so it is not used for now
+        if(!isTurretModeSet){
             turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            isTurretModeSet = true;
         }
     }
 
     String targetCell;
+    //check why volatile is necessary; I dont see why it is if it can just be updated for each opmode
     private static volatile double turretTargetX;
     private static volatile double turretTargetY;
 
     public void updateTurretTarget(double y){
-        PoseStorage poseStorage = new PoseStorage();
-        PoseStorage.Alliance alliance = poseStorage.getAlliance();
+        alliance = poseStorage.getAlliance();
 
         // Target coordinates based on alliance and position
         if(alliance == PoseStorage.Alliance.RED) {
@@ -76,15 +82,26 @@ public class Turret {
 
             }
         } else {
-            turretTargetX = 0;
-            turretTargetY = 0;
+            //set center as default target if no other targets are working
+            turretTargetX = 72;
+            turretTargetY = 72;
         }
     }
 
-    public void calculateTurretPIDPower(double posX, double posY, double robotHeading, double turretHeading){
-        ensureEncoderTracking();
+    double power = 0;
 
-        PoseStorage.Alliance alliance = new PoseStorage().getAlliance();
+    //having lastError set to zero will allow  it to correctly calculate the first loop without error
+    private double lastError = 0;
+    private final ElapsedTime timer = new ElapsedTime();
+    public void calculateTurretPIDPower(double posX, double posY, double robotHeading){
+        //be cautious of this (calling it after the turret rotates could cause it to have a wrong 0deg reference heading)
+        //this could also
+        // only add this back if we continue to have issues with the turret turning
+        // the constructor should set it fine, and this will either cause CPU strain or errors
+        //ensureTurretEncoderIsSet();
+
+
+        alliance = poseStorage.getAlliance();
         if (alliance == null || alliance == PoseStorage.Alliance.NONE) {
             power = 0;
             lastError = 0;
@@ -100,28 +117,47 @@ public class Turret {
         double disY = turretTargetY - posY;
 
         // 2. Calculate the global field bearing in degrees
-        double fieldBearing = Math.toDegrees(Math.atan2(disY, disX));
+        double targetFieldBearing = Math.toDegrees(Math.atan2(disY, disX));
 
         // 3. Error = Target - RobotOrientation - TurretOrientation
         // normalizeDegrees ensures the turret turns -10 deg instead of +350 deg
-        double error = normalizeDegrees(fieldBearing - Math.toDegrees(robotHeading) - turretHeading);
+        double offsetFromRobotHeadingToTargHeading = targetFieldBearing - Math.toDegrees(robotHeading);
 
-        double pTerm = error * kP;
+        //check that checkTurretHeading returns an accurate reading
+        //change the name to the name of the corresponding method in the TurretTuning file
+        double turretTargAngleError = normalizeDegrees(offsetFromRobotHeadingToTargHeading - getTurretHeading());
+
+        double pTerm = turretTargAngleError * kP;
         
         // The dTerm: (Change in Error / Change in Time) * kD
         // It acts as a brake when we approach the target quickly.
-        double dTerm = (deltaTime > 0) ? (error - lastError) / deltaTime * kD : 0;
+        double dTerm = (deltaTime > 0) ? (turretTargAngleError - lastError) / deltaTime * kD : 0;
 
         //tune offset tolerance
-        double headingOffsetTolerance = 10; // Tolerance in degrees
-        if(Math.abs(error) < headingOffsetTolerance){
+        double headingOffsetTolerance = 1.5; // Tolerance in degrees
+        if(Math.abs(turretTargAngleError) < headingOffsetTolerance){
             power = 0;
         } else {
+            //add MIN_POWER and MAX_POWER variables so they can be changed with greater ease
             power = Range.clip(pTerm + dTerm, -0.4, 0.4);
         }
 
-        lastError = error;
-        slipRing();
+        lastError = turretTargAngleError;
+        limitTurretRange();
+
+        turretPinionMotor.setPower(power);
+    }
+
+
+
+    private void limitTurretRange(){
+
+        if(getTurretHeading() > turretLimit){
+            power = Math.min(power, -limitPushBack);
+        } else if(getTurretHeading() < -turretLimit){
+            power = Math.max(power, limitPushBack);
+        }
+
     }
 
     // Shortest path logic: keeps values between -180 and 180
@@ -135,28 +171,10 @@ public class Turret {
     private final double pinionGearTeeth = 45.0;
     final double turretGearRatio = turntableGearTeeth / pinionGearTeeth;
 
-    public void slipRing() {
-        // goBILDA 435 RPM motor: 384.5 counts per motor-output revolution.
-        double ticksPerTurretRev = 384.5 * turretGearRatio;
-        double turretDegreePos = (turretPinionMotor.getCurrentPosition() / ticksPerTurretRev) * 360.0;
-
-        double limit = 70;
-        
-        // Soft Limit Logic:
-        // We only cut power if we are past the limit AND trying to turn further in that direction.
-        // tune the power values
-        if (turretDegreePos > limit && power > 0) {
-            power = -0.09;
-        } else if (turretDegreePos < -limit && power < 0) {
-            power = 0.09;
-        }
-        
-        turretPinionMotor.setPower(power);
-    }
 
 
     public double getTurretHeading(){
-        ensureEncoderTracking();
+        //ensureTurretEncoderIsSet();
         // Degrees. 384.5 is the 435 RPM motor count, then the pinion-to-turntable ratio.
         return (turretPinionMotor.getCurrentPosition() / (384.5 * turretGearRatio)) * 360;
     }
@@ -181,8 +199,8 @@ public class Turret {
     }
 
 
-    public double getTurretPos(){
-        ensureEncoderTracking();
+    public double getTurretTickPos(){
+
         return turretPinionMotor.getCurrentPosition();
     }
 }

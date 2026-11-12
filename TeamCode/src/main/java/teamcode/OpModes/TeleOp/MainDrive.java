@@ -87,8 +87,7 @@ public class MainDrive extends LinearOpMode {
             //update PID
             robot.shooter.calculateShooterPID();
             robot.turret.updateTurretTarget(driveFollower.pose().y());
-            robot.turret.calculateTurretPIDPower(poseStorage.getPosX(), poseStorage.getPosY(), poseStorage.getRobotHeading(), robot.turret.getTurretHeading());
-            //robot.turret.slipRing();
+            robot.turret.calculateTurretPIDPower(poseStorage.getPosX(), poseStorage.getPosY(), poseStorage.getRobotHeading());
 
 
             //updateSubsystems
@@ -118,7 +117,7 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("targetPosX", robot.turret.getTurretTargetX());
             telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
             telemetry.addData("turret heading", robot.turret.getTurretHeading());
-            telemetry.addData("turret ticks", robot.turret.getTurretPos());
+            telemetry.addData("turret ticks", robot.turret.getTurretTickPos());
 
 
             //telemetry.addData("shooterPower", shooter.getShooterPower());

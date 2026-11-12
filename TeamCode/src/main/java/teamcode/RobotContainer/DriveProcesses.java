@@ -26,12 +26,14 @@ public class DriveProcesses {
 
 
 
-    public void loadShooter() {
+    public void openGateIfWithinShootingTolerance(){
         double RPM_Error = Math.abs(targetRPM - robot.shooter.getRPM());
-        if (RPM_Error < 3) {
-            robot.intake.justTransIntake();
-
-            //tune this 1.5 value until it is long enough for the ball to have already shot
+        if(RPM_Error < 15) {
+            robot.turretGate.moveGateToOpenPos();
+        } else {
+            if(robot.turretGate.getGatePos() != robot.turretGate.getCloseGatePos()){
+                robot.turretGate.moveGateToClosePos();
+            }
         }
     }
 
@@ -42,9 +44,9 @@ public class DriveProcesses {
     public void intakeDriveUpdate(){
         boolean fullEjectCondition = gamepad2.y; //same control
         boolean justFrontIntakeCondition = gamepad2.left_trigger > 0.1 && gamepad2.right_trigger < 0.1; //
-
+        boolean fullIntakeCondition = gamepad2.left_trigger > 0.1 && gamepad2.right_trigger > 0.1;
         boolean justFrontEjectCondition = gamepad2.x;
-        boolean stopFullIntakeAndShooterCondition = gamepad2.left_bumper; //
+        boolean stopFullIntakeCondition = gamepad2.left_bumper; //
         boolean justTransIntakeCondition = gamepad2.a; //same control
         boolean justTransEjectCondition = gamepad2.b;
 
@@ -56,7 +58,10 @@ public class DriveProcesses {
         } else if(justFrontEjectCondition){
             robot.intake.justFrontEject();
             robot.intake.zeroTransfer();
-        } else if(stopFullIntakeAndShooterCondition){
+        } else if(fullIntakeCondition){
+            robot.intake.fullIntake();
+            openGateIfWithinShootingTolerance();
+        }else if(stopFullIntakeCondition){
             robot.intake.zeroIntake();
             robot.intake.zeroTransfer();
             //robot.shooter.zeroShoot(); //see if I can remove this
@@ -64,6 +69,7 @@ public class DriveProcesses {
         } else if (justTransIntakeCondition){
             robot.intake.zeroIntake();
             robot.intake.justTransIntake();
+            openGateIfWithinShootingTolerance();
         } else if (justTransEjectCondition){
             robot.intake.zeroIntake();
             robot.intake.justTransEject();
@@ -89,15 +95,6 @@ public class DriveProcesses {
         if(startShooterCondition){
             robot.shooter.setBaseTargetRPM(targetRPM);
             //add loadShooter when logic is finished
-        } else if(fireBallCondition){
-            //add timer
-            //robot.turretGate.openGate();
-            //wait a set number of seconds (probably about 0.6) then run loadShooter
-
-            //loadShooter();
-
-            //wait a second or two, then close the gate
-
         } else if(gamepad2.right_bumper){
             robot.shooter.setBaseTargetRPM(0);
         }

@@ -35,7 +35,7 @@ public class PositionTurretTest extends LinearOpMode {
             double strafe = gamepad1.left_stick_x;
 
             robot.turret.updateTurretTarget(follower.pose().y());
-            robot.turret.calculateTurretPIDPower(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret.getTurretHeading());
+            robot.turret.calculateTurretPIDPower(follower.pose().x(), follower.pose().y(), follower.pose().heading());
 
             robot.drivetrain.updateDriveMotorPowers(vertical, horizontal, strafe);
 
@@ -48,7 +48,7 @@ public class PositionTurretTest extends LinearOpMode {
             telemetry.addData("targetPosX", robot.turret.getTurretTargetX());
             telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
             telemetry.addData("turret heading", robot.turret.getTurretHeading());
-            telemetry.addData("turret ticks", robot.turret.getTurretPos());
+            telemetry.addData("turret ticks", robot.turret.getTurretTickPos());
             telemetry.addData("TurretTargetX: ", robot.turret.getTurretTargetX());
             telemetry.addData("TurretTargetY: ", robot.turret.getTurretTargetY());
             telemetry.addData("TurretTargetHeading: ", robot.turret.getTurretHeading());

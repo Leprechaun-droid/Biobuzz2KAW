@@ -178,23 +178,6 @@ public class Vision {
 
 
 
-    /*
-    public double findCellDis(String targetCluster, double robotPosX, double robotPosY){
-        double disX = 0;
-        double disY = 0;
-
-        List<AprilTagDetection> cellDetections;
-
-
-
-
-        double disFromRobot = Math.sqrt(Math.pow((robotPosX - disX), 2) + Math.pow((robotPosY - disY), 2));
-        return disFromRobot;
-
-
-    }
-    */
-
 
 
 

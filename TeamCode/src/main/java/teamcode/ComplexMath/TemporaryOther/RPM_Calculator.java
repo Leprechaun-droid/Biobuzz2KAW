@@ -3,6 +3,7 @@ package teamcode.ComplexMath.TemporaryOther;
 import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.hardwareMap;
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.util.Range;
 
 public class RPM_Calculator {
 
@@ -18,9 +19,19 @@ public class RPM_Calculator {
 
 
     public double IdealRPMRegression(){
-        //put rpm regression formula here
-        return 0;
+        //put rpm regression formula here (use distance(in) and RPM for desmos)
+        /*
+            likely won't use Range.clip for this one. It is unlikely we will need to limit the flywheel output since
+            the max is 6000RPM for the shooter motor, but should keep
+         */
+        return Range.clip();
 
+    }
+
+    public double idealHoodAngleRegression(){
+        //put hood angle formula here (use distance(in) and hood angle for desmos)
+        // will probably use Range.clip for this one for if the regression tries to get the position to go beyond 1.0
+        return Range.clip();
     }
 
 
