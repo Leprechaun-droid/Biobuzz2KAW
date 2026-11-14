@@ -28,7 +28,7 @@ public class DriveProcesses {
 
     public void openGateIfWithinShootingTolerance(){
         double RPM_Error = Math.abs(targetRPM - robot.shooter.getRPM());
-        if(RPM_Error < 15) {
+        if(RPM_Error < 20) {
             robot.turretGate.moveGateToOpenPos();
         } else {
             if(robot.turretGate.getGatePos() != robot.turretGate.getCloseGatePos()){
@@ -69,7 +69,6 @@ public class DriveProcesses {
         } else if (justTransIntakeCondition){
             robot.intake.zeroIntake();
             robot.intake.justTransIntake();
-            openGateIfWithinShootingTolerance();
         } else if (justTransEjectCondition){
             robot.intake.zeroIntake();
             robot.intake.justTransEject();
@@ -88,14 +87,22 @@ public class DriveProcesses {
     public void shooterDriveUpdate(){
         final boolean startShooterCondition = (gamepad2.right_trigger > 0.3) && (gamepad2.left_trigger < 0.3);
         final boolean zeroBaseShootCondition = gamepad2.right_bumper;
-        final boolean fireBallCondition = gamepad2.dpad_up;
+
+        final boolean setHoodAngleCondition = gamepad2.dpad_down;
+
 
         //dont believe I can use commands here, should restrict to just methods
 
         if(startShooterCondition){
+            //put the regression algorithm in here
             robot.shooter.setBaseTargetRPM(targetRPM);
             //add loadShooter when logic is finished
-        } else if(gamepad2.right_bumper){
+
+        } else if(setHoodAngleCondition){
+            //put regression algorithm here
+            robot.turretHood.setHoodAngle(0.2);
+
+        }else if(zeroBaseShootCondition){
             robot.shooter.setBaseTargetRPM(0);
         }
 
@@ -105,20 +112,18 @@ public class DriveProcesses {
 
 
 
-    public void turretDriveUpdate(){
+    public void turretDriveUpdate(double posX, double posY, double heading){
         //add control
         //find control for activating the turret
-        final boolean turretCondition = false;
+        boolean turretCondition = gamepad2.dpad_up;;
 
 
-
-
-
-
-
-
-
-
+        if(turretCondition){
+            robot.turret.manualTurretInCaseOfEmergency(gamepad2.right_stick_x);
+        } else {
+            robot.turret.updateTurretTarget(posY);
+            robot.turret.calculateTurretPIDPower(posX, posY, heading);
+        }
 
 
     }

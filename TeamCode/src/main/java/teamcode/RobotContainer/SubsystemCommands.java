@@ -2,6 +2,9 @@ package teamcode.RobotContainer;
 
 import static com.pedropathing.ivy.commands.Commands.infinite;
 import static com.pedropathing.ivy.commands.Commands.instant;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.deadline;
+import static com.pedropathing.ivy.groups.Groups.sequential;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -57,7 +60,10 @@ public class SubsystemCommands {
 
 
     public Command updateShooterRPM(){
-        // add the autoRPM algorithm in the setBaseTargetRPM algorithm
+        // add the autoRPM regression algorithm in the setBaseTargetRPM algorithm
+        double idealRPM = 0;
+        // set idealRPM equal to the value output by the complex math algorithm
+        // then plug ideal RPM into the setBaseTargetRPM argument
         return infinite(() -> robot.shooter.setBaseTargetRPM(2240));
     }
     public Command zeroShooterRPM(){
@@ -79,6 +85,18 @@ public class SubsystemCommands {
     }
 
 
+    public Command readyIntakeAndGateForShoot(){
+        return sequential(
+                openGate(),
+                //subsystemCommands.moveHoodToShootPos(), (add when I make the command)
+                waitMs(200), //needed so gate is fully open and hood is ready when intake runs
+                deadline(
+                        waitMs(2000),
+                        fullIntakeCommand()
+                )
+        );
+
+    }
 
 
 

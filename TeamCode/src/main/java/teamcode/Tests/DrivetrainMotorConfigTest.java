@@ -6,11 +6,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import teamcode.RobotContainer.Robot;
-
 @Disabled
 @TeleOp
-public class MotorConfigTest extends LinearOpMode {
+public class DrivetrainMotorConfigTest extends LinearOpMode {
 
     DcMotor lf_motor;
     DcMotor lb_motor;

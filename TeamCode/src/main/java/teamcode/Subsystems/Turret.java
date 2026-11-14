@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -11,43 +12,37 @@ import teamcode.ComplexMath.Storage.PoseStorage;
 
 public class Turret {
 
-    // PID constants for degrees. 
-    // kP is the "strength" of the turn.
-    // kD is the "damping" that prevents overshooting.
-    private double kP = 0.015;
-    private double kD = 0.001;
 
-    private double turretLimit = 110;
-    private double limitPushBack = 0.1;
-
-    DcMotorEx turretPinionMotor;
     PoseStorage poseStorage = new PoseStorage();
     PoseStorage.Alliance alliance;
 
+    Servo turretServo1;
+    Servo turretServo2;
+
+    //set servoStartPos to 0.5;
+    double servoStartPos = 0.5;
+    double targetServoPos;
+
+    //fill in actual teeth amounts
+    private final double servoGearTeeth = 5;
+    private final double miniGearTeeth = 5;
+    private final double pinionGearTeeth = 5;
+    private final double turntableGearTeeth = 5;
+
+
+    double GEAR_RATIO = (servoGearTeeth / miniGearTeeth) * (turntableGearTeeth / pinionGearTeeth); / turntableGearTeeth);
+
     public Turret(HardwareMap hardwareMap){
-        turretPinionMotor = hardwareMap.get(DcMotorEx.class, "turretPinion");
+        //perspective is when staring at the back of the robot
+        turretServo1 = hardwareMap.get(Servo.class, "turretServoLeft");
+        turretServo2 = hardwareMap.get(Servo.class, "turretServoRight");
 
-        // Direction has to be set before the encoder reset. REVERSE flips power
-        // and the encoder together, so positive heading still matches positive power.
-        turretPinionMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        turretPinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Reset encoder to 0 at start. Point turret forward before hitting INIT.
-        // STOP_AND_RESET is sticky if RUN_WITHOUT_ENCODER is not applied again,
-        // and a stuck reset reports 0 ticks while the motor keeps spinning.
-        turretPinionMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretServo2.setDirection(Servo.Direction.REVERSE);
+
     }
 
-    private boolean isTurretModeSet = false;
-    private void ensureTurretEncoderIsSet(){
-        //checking a boolean value saves more
-        //using this when it is redundant strains the CPu, so it is not used for now
-        if(!isTurretModeSet){
-            turretPinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-            isTurretModeSet = true;
-        }
-    }
+
 
     String targetCell;
     //check why volatile is necessary; I dont see why it is if it can just be updated for each opmode
@@ -88,107 +83,56 @@ public class Turret {
         }
     }
 
-    double power = 0;
-
-    //having lastError set to zero will allow  it to correctly calculate the first loop without error
-    private double lastError = 0;
-    private final ElapsedTime timer = new ElapsedTime();
-    public void calculateTurretPIDPower(double posX, double posY, double robotHeading){
-        //be cautious of this (calling it after the turret rotates could cause it to have a wrong 0deg reference heading)
-        //this could also
-        // only add this back if we continue to have issues with the turret turning
-        // the constructor should set it fine, and this will either cause CPU strain or errors
-        //ensureTurretEncoderIsSet();
 
 
-        alliance = poseStorage.getAlliance();
-        if (alliance == null || alliance == PoseStorage.Alliance.NONE) {
-            power = 0;
-            lastError = 0;
-            turretPinionMotor.setPower(0);
-            return;
-        }
 
-        double deltaTime = timer.seconds();
-        timer.reset();
-
-        // 1. Calculate vector to target
+    public void calculateTurretServoPos(double posX, double posY, double robotHeading){
         double disX = turretTargetX - posX;
         double disY = turretTargetY - posY;
+        double MAX_SERVO_ROTATION_DEG = 350;
 
-        // 2. Calculate the global field bearing in degrees
+
+        // 1. Calculate field-centric bearing
         double targetFieldBearing = Math.toDegrees(Math.atan2(disY, disX));
 
-        // 3. Error = Target - RobotOrientation - TurretOrientation
-        // normalizeDegrees ensures the turret turns -10 deg instead of +350 deg
-        double offsetFromRobotHeadingToTargHeading = targetFieldBearing - Math.toDegrees(robotHeading);
+        double turretTargetDegree = limitTurretAngleTo180Deg((targetFieldBearing - robotHeading));
 
-        //check that checkTurretHeading returns an accurate reading
-        //change the name to the name of the corresponding method in the TurretTuning file
-        double turretTargAngleError = normalizeDegrees(offsetFromRobotHeadingToTargHeading - getTurretHeading());
+        //I think this is right; make sure there is no conflict if the limit for the axon servo is 350 degrees instead
+        double baseTargetServoPos = ((turretTargetDegree * GEAR_RATIO) / MAX_SERVO_ROTATION_DEG) + servoStartPos;
 
-        double pTerm = turretTargAngleError * kP;
-        
-        // The dTerm: (Change in Error / Change in Time) * kD
-        // It acts as a brake when we approach the target quickly.
-        double dTerm = (deltaTime > 0) ? (turretTargAngleError - lastError) / deltaTime * kD : 0;
+        double servoUpperLimit = servoStartPos + 0.2;
+        double servoLowerLimit = servoStartPos - 0.2;
+        targetServoPos = Range.clip(baseTargetServoPos, servoLowerLimit, servoUpperLimit);
 
-        //tune offset tolerance
-        double headingOffsetTolerance = 1.5; // Tolerance in degrees
-        if(Math.abs(turretTargAngleError) < headingOffsetTolerance){
-            power = 0;
-        } else {
-            //add MIN_POWER and MAX_POWER variables so they can be changed with greater ease
-            power = Range.clip(pTerm + dTerm, -0.4, 0.4);
+    }
+
+    public void setTurretServoPos(){
+        turretServo1.setPosition(targetServoPos);
+        turretServo2.setPosition(targetServoPos);
+    }
+
+
+    public double limitTurretAngleTo180Deg(double targetAngle){
+        double newTargetAngle = targetAngle;
+        while(newTargetAngle > 180 || newTargetAngle < -180){
+               if(newTargetAngle > 180){
+                   newTargetAngle -= 360;
+               } else {
+                   newTargetAngle += 360;
+               }
         }
-
-        lastError = turretTargAngleError;
-        limitTurretRange();
-
-        turretPinionMotor.setPower(power);
+        return newTargetAngle;
     }
 
 
 
-    private void limitTurretRange(){
-
-        if(getTurretHeading() > turretLimit){
-            power = Math.min(power, -limitPushBack);
-        } else if(getTurretHeading() < -turretLimit){
-            power = Math.max(power, limitPushBack);
-        }
-
-    }
-
-    // Shortest path logic: keeps values between -180 and 180
-    private double normalizeDegrees(double degrees) {
-        while (degrees > 180) degrees -= 360;
-        while (degrees < -180) degrees += 360;
-        return degrees;
-    }
-
-    private final double turntableGearTeeth = 155.0;
-    private final double pinionGearTeeth = 45.0;
-    final double turretGearRatio = turntableGearTeeth / pinionGearTeeth;
 
 
 
-    public double getTurretHeading(){
-        //ensureTurretEncoderIsSet();
-        // Degrees. 384.5 is the 435 RPM motor count, then the pinion-to-turntable ratio.
-        return (turretPinionMotor.getCurrentPosition() / (384.5 * turretGearRatio)) * 360;
-    }
-
-    public void setTurretPD(double newkP, double newKD){
-        kP = newkP;
-        kD = newKD;
-    }
-
-    public void resetTimer(){
-        timer.reset();
-    }
 
 
+    //update turret gear ratio; the designers added two mirrored servo motors that connect via a small
+    //  gear that attached to the same shaft as a larger gear that is then connected to a large turntable gear
 
     public double getTurretTargetX(){
         return turretTargetX;
@@ -199,8 +143,4 @@ public class Turret {
     }
 
 
-    public double getTurretTickPos(){
-
-        return turretPinionMotor.getCurrentPosition();
-    }
 }

@@ -2,6 +2,7 @@ package teamcode.Subsystems;
 
 import android.util.Size;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
@@ -85,7 +87,7 @@ public class Vision {
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+                .setTagLibrary(AprilTagGameDatabase.getBioBuzzTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 //.setCameraPose(cameraPosition, cameraOrientation)
 
@@ -145,11 +147,14 @@ public class Vision {
         clusterDet = null;
     }
 
-    public void scanForClusters(){
+    public void scanForClusters() {
         currentDetections = aprilTagProcessor.getDetections();
-        for(AprilTagDetection detection : currentDetections){
-            if(detection instanceof AprilTagClusterDetection){
-                clusterDet = (AprilTagClusterDetection) detection;
+        clusterDet = null;
+        if (currentDetections != null) {
+            for (AprilTagDetection detection : currentDetections) {
+                if (detection instanceof AprilTagClusterDetection) {
+                    clusterDet = (AprilTagClusterDetection) detection;
+                }
             }
         }
     }
@@ -198,7 +203,11 @@ public class Vision {
         visionPortal.setProcessorEnabled(aprilTagProcessor, false);
     }
 
-
+    public void startSteamingtoDashboard(int maxFPS){
+        if(visionPortal != null) {
+            FtcDashboard.getInstance().startCameraStream(visionPortal, maxFPS);
+        }
+    }
 
 
 
@@ -220,10 +229,6 @@ public class Vision {
 
     public void closeVisionPortal(){
         visionPortal.close();
-    }
-
-    public VisionPortal getVisionPortal() {
-        return visionPortal;
     }
 
 }

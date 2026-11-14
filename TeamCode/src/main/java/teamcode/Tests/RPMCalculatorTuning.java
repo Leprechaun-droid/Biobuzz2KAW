@@ -85,7 +85,10 @@ public class RPMCalculatorTuning extends LinearOpMode {
             strafe = gamepad1.left_stick_x;
 
             robot.shooter.setBaseTargetRPM(targetRPM);
-            robot.turretHood.setHoodAngle(hoodAngle);
+            if(gamepad1.a){
+                robot.turretHood.setHoodAngle(hoodAngle);
+
+            }
             robot.shooter.calculateShooterPID();
 
             //could add turretAutoAiming, but I think that would add unneeded complexity; I can just

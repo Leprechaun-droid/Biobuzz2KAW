@@ -21,10 +21,6 @@ public class MainDrive extends LinearOpMode {
     Follower driveFollower;
 
 
-    /*
-        - CREATE POSITIONS FOR THE CELLS EITHER IN THIS CLASS OR IN ANOTHER ONE
-        THAT HANDLES THE MATH
-    */
 
 
     private double startDrivePosX;
@@ -41,14 +37,14 @@ public class MainDrive extends LinearOpMode {
         robot = new Robot(hardwareMap);
 
         // Pass the robot instance to DriveProcesses to share the same hardware state
-        driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
+            driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
 
+        //PoseBridge
+            startDrivePosX = poseStorage.getPosX();
+            startDrivePosY = poseStorage.getPosY();
+            startDriveHeading = poseStorage.getRobotHeading();
 
-        startDrivePosX = poseStorage.getPosX();
-        startDrivePosY = poseStorage.getPosY();
-        startDriveHeading = poseStorage.getRobotHeading();
-
-        driveStartPose = new Pose(startDrivePosX, startDrivePosY, startDriveHeading);
+            driveStartPose = new Pose(startDrivePosX, startDrivePosY, startDriveHeading);
 
 
         //Create Follower
@@ -72,6 +68,9 @@ public class MainDrive extends LinearOpMode {
         //robot.vision.initAprilTag();
         //robot.vision.resetScanner();
         waitForStart();
+
+
+
         while(opModeIsActive()){
             vertical = gamepad1.left_stick_y;
             horizontal = gamepad1.right_stick_x;
@@ -84,15 +83,19 @@ public class MainDrive extends LinearOpMode {
 
 
 
-            //update PID
+            //update PID (may put this in shooterDriveUpdate later, can stay here for now)
             robot.shooter.calculateShooterPID();
-            robot.turret.updateTurretTarget(driveFollower.pose().y());
-            robot.turret.calculateTurretPIDPower(poseStorage.getPosX(), poseStorage.getPosY(), poseStorage.getRobotHeading());
+
+
+
 
 
             //updateSubsystems
             driveProcesses.intakeDriveUpdate();
             driveProcesses.shooterDriveUpdate();
+            driveProcesses.turretDriveUpdate(driveFollower.pose().x(), driveFollower.pose().y(), driveFollower.pose().heading());
+
+
             robot.drivetrain.updateDriveMotorPowers(vertical, horizontal, strafe);
 
 
@@ -109,7 +112,7 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("rb_motor_power", robot.drivetrain.getRBMotorPower());
             telemetry.addData("left_toggler_analog", gamepad1.left_trigger);
             telemetry.addData("ShooterRPM", robot.shooter.getRPM());
-            telemetry.addData("CurrentCluster", robot.vision.getCurrentCluster());
+            //telemetry.addData("CurrentCluster", robot.vision.getCurrentCluster());
             telemetry.addData("Target RPM", robot.shooter.getTargetRPM());
             telemetry.addData("Position", "%.1f, %.1f, %.1f deg",
                     poseStorage.getPosX(), poseStorage.getPosY(), Math.toDegrees(poseStorage.getRobotHeading()));
@@ -118,7 +121,9 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
             telemetry.addData("turret heading", robot.turret.getTurretHeading());
             telemetry.addData("turret ticks", robot.turret.getTurretTickPos());
-
+            //create global variable in driveProcesses class to call later for manualTurretPower
+            // have it set to 0 at start
+            telemetry.addData("manualTurretPower: ", gamepad2.right_stick_x/4);
 
             //telemetry.addData("shooterPower", shooter.getShooterPower());
             //telemetry.addData("shooterRPM", robot.shooter.getRPM());
