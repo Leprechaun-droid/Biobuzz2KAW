@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import teamcode.ComplexMath.Storage.PoseStorage;
 
@@ -29,7 +30,7 @@ public class Turret {
 
         // Direction has to be set before the encoder reset. REVERSE flips power
         // and the encoder together, so positive heading still matches positive power.
-        turretPinionMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        turretPinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         turretPinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reset encoder to 0 at start. Point turret forward before hitting INIT.
@@ -92,7 +93,11 @@ public class Turret {
 
     //having lastError set to zero will allow  it to correctly calculate the first loop without error
     private double lastError = 0;
+    private double desiredTurretDeg = 0;
+    private double turretTargAngleError = 0;
+    private String limitNote = "not run";
     private final ElapsedTime timer = new ElapsedTime();
+    private final ElapsedTime logTimer = new ElapsedTime();
     public void calculateTurretPIDPower(double posX, double posY, double robotHeading){
         //be cautious of this (calling it after the turret rotates could cause it to have a wrong 0deg reference heading)
         //this could also
@@ -105,7 +110,9 @@ public class Turret {
         if (alliance == null || alliance == PoseStorage.Alliance.NONE) {
             power = 0;
             lastError = 0;
+            limitNote = "alliance unset, power forced to 0";
             turretPinionMotor.setPower(0);
+            logAim("idle", 0);
             return;
         }
 
@@ -116,16 +123,17 @@ public class Turret {
         double disX = turretTargetX - posX;
         double disY = turretTargetY - posY;
 
-        // 2. Calculate the global field bearing in degrees
+        // Field bearing is [-180, 180]. Pedro heading is [0, 360). Wrap that
+        // difference first, then clamp it inside the turret stops. The turret
+        // cannot spin through the back, so the error stays a plain subtraction.
+        // Wrapping it again picks the short path into the stop: a +33° cell
+        // became a -172° command while the turret sat at -155°.
         double targetFieldBearing = Math.toDegrees(Math.atan2(disY, disX));
-
-        // 3. Error = Target - RobotOrientation - TurretOrientation
-        // normalizeDegrees ensures the turret turns -10 deg instead of +350 deg
-        double offsetFromRobotHeadingToTargHeading = targetFieldBearing - Math.toDegrees(robotHeading);
-
-        //check that checkTurretHeading returns an accurate reading
-        //change the name to the name of the corresponding method in the TurretTuning file
-        double turretTargAngleError = normalizeDegrees(offsetFromRobotHeadingToTargHeading - getTurretHeading());
+        desiredTurretDeg = Range.clip(
+                normalizeDegrees(targetFieldBearing - Math.toDegrees(robotHeading)),
+                -turretLimit,
+                turretLimit);
+        turretTargAngleError = desiredTurretDeg - getTurretHeading();
 
         double pTerm = turretTargAngleError * kP;
         
@@ -145,19 +153,46 @@ public class Turret {
         lastError = turretTargAngleError;
         limitTurretRange();
 
-        turretPinionMotor.setPower(power);
+        double motorPower = -power;
+        turretPinionMotor.setPower(motorPower);
+        logAim("aim", motorPower);
+    }
+
+    private void logAim(String state, double motorPower) {
+        if (logTimer.milliseconds() < 200) {
+            return;
+        }
+        logTimer.reset();
+        RobotLog.ii("TurretAim",
+                "state=%s alliance=%s target=(%.1f, %.1f) desired=%.2f heading=%.2f ticks=%d error=%.2f power=%.3f motor=%.3f limit=%s",
+                state,
+                alliance,
+                turretTargetX,
+                turretTargetY,
+                desiredTurretDeg,
+                getTurretHeading(),
+                turretPinionMotor.getCurrentPosition(),
+                turretTargAngleError,
+                power,
+                motorPower,
+                limitNote);
     }
 
 
 
     private void limitTurretRange(){
-
-        if(getTurretHeading() > turretLimit){
-            power = Math.min(power, -limitPushBack);
-        } else if(getTurretHeading() < -turretLimit){
-            power = Math.max(power, limitPushBack);
+        double heading = getTurretHeading();
+        if (heading > turretLimit && power > 0) {
+            power = -limitPushBack;
+            limitNote = "past +stop, outward power replaced";
+        } else if (heading < -turretLimit && power < 0) {
+            power = limitPushBack;
+            limitNote = "past -stop, outward power replaced";
+        } else if (heading > turretLimit || heading < -turretLimit) {
+            limitNote = "outside stop, power already inward";
+        } else {
+            limitNote = "inside stops";
         }
-
     }
 
     // Shortest path logic: keeps values between -180 and 180

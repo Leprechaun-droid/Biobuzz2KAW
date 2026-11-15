@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.RobotLog;
 
 import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.Constants.GameConstants;
@@ -58,39 +59,12 @@ public class TurretTuning extends LinearOpMode {
         return targAngle;
     }
 
-
-
-    private double customLimitTurretAng(double targAng){
-        double newTargAng = targAng;
-        while(newTargAng > turretLimit){
-            newTargAng -= (Math.abs(turretLimit) * 2);
-        }
-        while (newTargAng < turretLimit){
-            newTargAng += (Math.abs(turretLimit) * 2);
-        }
-
-        return newTargAng;
-
-    }
-
-
-
-    private void limitTestTurretRange(){
-
-        if(currentTurretDegPos > turretLimit){
-            power = Math.min(power, -limitPushBack);
-        } else if(currentTurretDegPos < -turretLimit){
-            power = Math.max(power, limitPushBack);
-        }
-
-    }
-
     private void ensureTurretEncoderIsSet(){
         if(pinionMotor.getMode() != DcMotor.RunMode.RUN_WITHOUT_ENCODER){
             pinionMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
     }
-//
+
 
 
 
@@ -98,10 +72,12 @@ public class TurretTuning extends LinearOpMode {
     public void runOpMode(){
         pinionMotor = hardwareMap.get(DcMotorEx.class, "turretPinion");
 
+        // REVERSE flips power and the encoder together. Positive power still
+        // increases the reported heading, but that heading is the other physical way.
+        pinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         pinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         pinionMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-        pinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         pinionMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         Follower follower = Constants.create(hardwareMap);
@@ -115,6 +91,7 @@ public class TurretTuning extends LinearOpMode {
 
         GameConstants gameConstants = new GameConstants();
         ElapsedTime timer = new ElapsedTime();
+        ElapsedTime logTimer = new ElapsedTime();
 
         //default to center of field if no target is set
         double targetX = 72;
@@ -191,15 +168,18 @@ public class TurretTuning extends LinearOpMode {
             double disY = targetY - follower.pose().y();
 
             double targetFieldBearing = Math.toDegrees(Math.atan2(disY, disX));
+            double robotHeadingDeg = Math.toDegrees(follower.pose().heading());
+            // Wrap the field bearing into the robot, then clamp to the stops.
+            // Do not wrap the turret error. This axis cannot take the short
+            // path through the back of the robot.
+            double desiredTurretDeg = Range.clip(
+                    limitTurretAngTo180Deg(targetFieldBearing - robotHeadingDeg),
+                    -turretLimit,
+                    turretLimit);
 
-            double offsetFromRobotHeadingToTargHeading = targetFieldBearing - Math.toDegrees(follower.pose().heading());
-
-            //add limit here (this calculates the degrees from the turret angle to the robotHeadingOffset)
-            // look for where to add the 360 degree limit
             currentTurretDegPos = (pinionMotor.getCurrentPosition()/(TICKS_PER_REV * gearRatio)) * 360;
+            double turretTargAngleError = desiredTurretDeg - currentTurretDegPos;
 
-            //double turretTargAngleError = limitTurretAngTo180Deg(offsetFromRobotHeadingToTargHeading - currentTurretDegPos);
-            double turretTargAngleError = customLimitTurretAng(offsetFromRobotHeadingToTargHeading - currentTurretDegPos);
 
             double pTerm = turretTargAngleError * kP;
 
@@ -214,9 +194,44 @@ public class TurretTuning extends LinearOpMode {
             } else {
                 power = Range.clip(pTerm + dTerm, MIN_POWER, MAX_POWER);
             }
-            limitTestTurretRange();
+            double powerBeforeLimit = power;
+            String limitNote;
+            if (currentTurretDegPos > turretLimit && power > 0) {
+                power = -limitPushBack;
+                limitNote = "past +stop, outward power replaced";
+            } else if (currentTurretDegPos < -turretLimit && power < 0) {
+                power = limitPushBack;
+                limitNote = "past -stop, outward power replaced";
+            } else if (currentTurretDegPos > turretLimit || currentTurretDegPos < -turretLimit) {
+                limitNote = "outside stop, power already inward";
+            } else {
+                limitNote = "inside stops";
+            }
 
-            pinionMotor.setPower(power);
+            // Direction is REVERSE, which flips this command again. The extra
+            // minus keeps positive error turning the turret toward the target.
+            double motorPower = -power;
+            pinionMotor.setPower(motorPower);
+
+            if (logTimer.milliseconds() >= 200) {
+                logTimer.reset();
+                RobotLog.ii("TurretAim",
+                        "state=tuning target=(%.1f, %.1f) field=%.2f robot=%.2f desired=%.2f heading=%.2f ticks=%d error=%.2f p=%.3f d=%.3f powerBefore=%.3f power=%.3f motor=%.3f limit=%s",
+                        targetX,
+                        targetY,
+                        targetFieldBearing,
+                        robotHeadingDeg,
+                        desiredTurretDeg,
+                        currentTurretDegPos,
+                        pinionMotor.getCurrentPosition(),
+                        turretTargAngleError,
+                        pTerm,
+                        dTerm,
+                        powerBeforeLimit,
+                        power,
+                        motorPower,
+                        limitNote);
+            }
 
 
 
@@ -231,12 +246,15 @@ public class TurretTuning extends LinearOpMode {
             telemetry.addData("targetY", targetY);
             telemetry.addData("currentTurretDegPos", currentTurretDegPos);
             telemetry.addData("targetFieldBearing", targetFieldBearing);
-            telemetry.addData("offsetFromRobotHeadingToTargHeading", offsetFromRobotHeadingToTargHeading);
+            telemetry.addData("robotHeadingDeg", robotHeadingDeg);
+            telemetry.addData("desiredTurretDeg", desiredTurretDeg);
             telemetry.addData("turretTargAngleError", turretTargAngleError);
             telemetry.addData("pTerm", pTerm);
             telemetry.addData("dTerm", dTerm);
+            telemetry.addData("powerBeforeLimit", powerBeforeLimit);
             telemetry.addData("power", power);
-            telemetry.addData("currentTurretTickPos", pinionMotor.getCurrentPosition() / gearRatio);
+            telemetry.addData("limit", limitNote);
+            telemetry.addData("ticks", pinionMotor.getCurrentPosition());
 
             telemetry.update();
         }
