@@ -44,6 +44,21 @@ public class Drivetrain {
     }
 
 
+    // Stick values are the raw gamepad axes: left stick Y is negative when
+    // pushed forward, left stick X is positive to the right, and turn is the
+    // right stick X. Heading is the Pedro pose in radians, where 0 faces +X
+    // and 90 degrees faces +Y. The stick is rotated into the robot frame, then
+    // the existing wheel mix drives that direction.
+    public void updateFieldCentricDrive(double stickY, double stickX, double turn, double headingRadians) {
+        double fieldX = stickX;
+        double fieldY = -stickY;
+        double cos = Math.cos(headingRadians);
+        double sin = Math.sin(headingRadians);
+        double robotForward = fieldX * cos + fieldY * sin;
+        double robotRight = fieldX * sin - fieldY * cos;
+        updateDriveMotorPowers(-robotForward, turn, robotRight);
+    }
+
     public void updateDriveMotorPowers(double vertical, double horizontal, double strafe){
 
         absTotalPower = Math.max((Math.abs(vertical) + Math.abs(horizontal) + Math.abs(strafe)), 1);

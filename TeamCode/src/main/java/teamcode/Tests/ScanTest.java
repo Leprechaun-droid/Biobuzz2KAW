@@ -24,9 +24,7 @@ public class ScanTest extends LinearOpMode {
 
 
         robot.vision.initVisionPortal();
-        //calling two instances of visionPortal by using a get method would strain the CPU and
-        //  there would be two visionPortals; this is cleaner
-        robot.vision.startSteamingtoDashboard(15);
+        FtcDashboard.getInstance().startCameraStream(robot.vision.getVisionPortal(), 15);
 
         robot.vision.resetScanner();
         telemetry.update();

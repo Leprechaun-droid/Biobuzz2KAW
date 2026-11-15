@@ -117,14 +117,17 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
 
     public Command autoRoutine() {
 
-        return deadline(
+        return parallel(
 
+                subsystemCommands.updateShooterPID(),
+                //add turret and calculate RPM and Hood
                 sequential(
-                        initAuto(),
                         //need to plug in RPM Calculator here (actually in the underlying
-                        //  command (which should also be moved to the root method)
+                        //command (which should also be moved to the root method)
 
                         //FIRST SHOOT ACTION
+                        //does not need to be deadline because setShooterRPM is an
+                        // instant command, not an infinite command
                         deadline(
                                 // must run continously parallel to sequential because
                                 // it uses coordinates to calculate RPM
@@ -133,11 +136,15 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                                 sequential(
                                         //move to first shoot with preloaded 4 balls
                                         goToFirstShoot(),
-                                        subsystemCommands.readyIntakeAndGateForShoot()
+                                        subsystemCommands.openGate(),
+                                        //so the intake and gate don't collide
+                                        waitMs(200),
+                                        subsystemCommands.fullIntakeCommand(),
+                                        // pause so all balls can be shot
+                                        waitMs(2000)
                                 ),
                                 subsystemCommands.updateShooterRPM()
-
-
+                                //add update hood position
                         ),
 
                         // close gate so the intake when collecting from garden does not
@@ -147,7 +154,9 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                         subsystemCommands.zeroShooterRPM(),
 
                         sequential(
-                                // intake is still running
+                                // redundant because it is already running, but I want
+                                // to remind myself it is running
+                                subsystemCommands.fullIntakeCommand(),
                                 goToGarden(),
                                 // wait some time to ensure we collected everything
                                 waitMs(300)
@@ -157,58 +166,34 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                         //SECOND SHOOT ACTION
                         deadline(
                                 //needs deadline or parallel will cause it to run
-                                // infinitely becase the updateShooterRPM is an infinite command
+                                // infinitely becase the setShooterRP
                                 sequential(
 
                                         goToParkShoot(),
-                                        subsystemCommands.readyIntakeAndGateForShoot()
+                                        //must be run after park shoot
+                                        //open gate for shoot
+                                        subsystemCommands.openGate(),
+                                        waitMs(200),
+                                        subsystemCommands.fullIntakeCommand(),
+                                        waitMs(2000)
+                                        //finished shooting
                                 ),
-                                subsystemCommands.updateShooterRPM()
 
+                                subsystemCommands.updateShooterRPM()
+                                //add update hood position
 
                         ),
                         subsystemCommands.closeGate(),
-                        deadline(
+                        subsystemCommands.zeroShooterRPM(),
+                        sequential(
 
-                                sequential(
-                                    //intake is still running
-                                    subsystemCommands.activateMatchLoader(),
-                                    goToGardenFlower(),
-                                    //check if this pauses intake; that would need correction
-                                    // intake is supposed to be running during the wait
-                                    waitMs(300)
-                                ),
-                                //check if this is needed; this is here
-                                //  for redundancy if the waitMs pauses the intake
-                                //should run continously while the sequential command group
-                                //  in deadline is running
-                                subsystemCommands.fullIntakeCommand()
-                        ),
-                        subsystemCommands.restMatchLoader(),
-                        subsystemCommands.zeroIntakeCommand(),
-                        //THIRD SHOOT ACTION
-                        // look into if I can pass a path command as an argument and call it in a
-                        //      separate command; leave for now, maybe by meet-3
-                        deadline(
-                                sequential(
-                                        goToFlowerShoot(),
-                                        //must wait until at shoot pos for redundancy, don't want
-                                        //  any balls flying out accidentally
-                                        subsystemCommands.readyIntakeAndGateForShoot()
-                                ),
 
-                                subsystemCommands.updateShooterRPM()
 
-                        ),
-                        prepareForAutoEnd(),
-                        park()
-                        ),
+                        )
 
-                        subsystemCommands.updateShooterPID()
-                        //add turret here as well (or I could actually put update the shooter and the
-                        // turret PID outside the auto routine as individual methods in the while loop) (will
-                        // probably do this)
-                        //add turret and calculate RPM as well as HoodAngle
+
+
+                        )
 
 
                 );
@@ -225,30 +210,15 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                 //turn trans on, wait a time (roughly a second), then turn full intake on
                 //after a certain amount of time that it takes to shoot all 4 balls, turn off full intake
                 //move to midPos where we could collect from the garden or flower
+
+
+
+
+
+
+
     }
 
-
-
-
-
-
-    public Command initAuto(){
-        return sequential(
-                subsystemCommands.zeroIntakeCommand(),
-
-                //subsystemCommands.zeroShooterRPM(),
-                subsystemCommands.restMatchLoader()
-        );
-    }
-
-    public Command prepareForAutoEnd(){
-        return sequential(
-                subsystemCommands.closeGate(),
-                subsystemCommands.zeroIntakeCommand(),
-                subsystemCommands.zeroShooterRPM(),
-                subsystemCommands.restMatchLoader()
-        );
-    }
 
 
 
@@ -275,23 +245,11 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
 
 
         while(opModeIsActive()){
-            follower.update();
+
             Scheduler.execute();
+            follower.update();
             poseStorage.savePoseToStorage(follower.pose().x(), follower.pose().y(), follower.pose().heading());
             //add concurrent PID methods
-
-
-            //shooterPID needs to be done inside the loop so the RPM can manually be set to 0
-                // the shooterPID that calculates the ideal power can be out here, but the part
-                //  of it that sets the targetRPM must be placed inside the autoRoutine
-
-            // setHoodPos does not go outside auto because running it the entire time could strain
-            //  the servo; it must be set at certain
-
-            robot.turret.calculateTurretServoPos(follower.pose().x(), follower.pose().y(), follower.pose().heading());
-
-            //update turret position (this goes outside the autoRoutine (putting it inside serves no purpose))
-            // it runs the same calculation continously (may need to put it in if manually setting positions)
 
 
 

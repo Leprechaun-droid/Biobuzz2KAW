@@ -9,7 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 @TeleOp
-public class BasicMotorTest extends LinearOpMode {
+public class BasicTurretMotorTest extends LinearOpMode {
 
 
 
