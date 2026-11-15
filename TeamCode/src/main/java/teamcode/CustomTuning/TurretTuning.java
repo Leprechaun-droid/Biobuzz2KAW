@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
+import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.Constants.GameConstants;
 import teamcode.pedro.Constants;
 
@@ -109,6 +110,8 @@ public class TurretTuning extends LinearOpMode {
         PoseFactory poseFactory = PoseFactory.degrees();
 
         Pose startPos = null;
+        PoseStorage.Alliance startAlliance = null;
+        PoseStorage poseStorage = new PoseStorage();
 
         GameConstants gameConstants = new GameConstants();
         ElapsedTime timer = new ElapsedTime();
@@ -122,15 +125,19 @@ public class TurretTuning extends LinearOpMode {
             if(gamepad1.x){
                 //blueGardenStart
                 startPos = poseFactory.of(32, 9, 90);
+                startAlliance = PoseStorage.Alliance.BLUE;
             } else if (gamepad1.b){
                 //blueParkStart
                 startPos = poseFactory.of(32, 132, 270);
+                startAlliance = PoseStorage.Alliance.BLUE;
             } else if(gamepad1.y){
                 //redGardenStart
                 startPos = poseFactory.of(110, 133, 270);
+                startAlliance = PoseStorage.Alliance.RED;
             } else if(gamepad1.a){
                 //redParkStart
                 startPos = poseFactory.of(129, 8, 90);
+                startAlliance = PoseStorage.Alliance.RED;
 
             }
             // lets the CPU breathe and process background tasks so it is not overwhelmed by
@@ -146,6 +153,10 @@ public class TurretTuning extends LinearOpMode {
         }
 
         follower.setPose(startPos);
+        if (startAlliance != null) {
+            poseStorage.savePoseToStorage(startPos.x(), startPos.y(), startPos.heading());
+            poseStorage.setAlliance(startAlliance);
+        }
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         double lastError = 0;

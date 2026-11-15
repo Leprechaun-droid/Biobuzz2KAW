@@ -11,6 +11,7 @@ public class PoseStorage {
 
     public enum Alliance {RED, BLUE, NONE}
     private static volatile Alliance alliance = Alliance.NONE;
+    private static volatile boolean poseSet = false;
 
 
 
@@ -19,6 +20,11 @@ public class PoseStorage {
         PosX = updatedX;
         PosY = updatedY;
         robotHeading = updatedHeading;
+        poseSet = true;
+    }
+
+    public boolean isPoseSet() {
+        return poseSet;
     }
 
     public double getPosX(){
