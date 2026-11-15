@@ -14,7 +14,7 @@ public class Turret {
     // PID constants for degrees. 
     // kP is the "strength" of the turn.
     // kD is the "damping" that prevents overshooting.
-    private double kP = 0.015;
+    private double kP = 0.016;
     private double kD = 0.001;
 
     private double turretLimit = 110;
@@ -202,5 +202,25 @@ public class Turret {
     public double getTurretTickPos(){
 
         return turretPinionMotor.getCurrentPosition();
+    }
+
+    public double getDesiredTurretDeg() {
+        return desiredTurretDeg;
+    }
+
+    public double getTurretErrorDeg() {
+        return turretTargAngleError;
+    }
+
+    public double getTurretPower() {
+        return power;
+    }
+
+    public double getKP() {
+        return kP;
+    }
+
+    public String getLimitNote() {
+        return limitNote;
     }
 }
