@@ -1,11 +1,7 @@
 package teamcode.Subsystems;
 
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import teamcode.ComplexMath.Storage.PoseStorage;
@@ -24,13 +20,13 @@ public class Turret {
     double targetServoPos;
 
     //fill in actual teeth amounts
-    private final double servoGearTeeth = 5;
-    private final double miniGearTeeth = 5;
+    private final double servoGearTeeth = 80;
+    private final double miniGearTeeth = 20;
     private final double pinionGearTeeth = 5;
     private final double turntableGearTeeth = 5;
 
 
-    double GEAR_RATIO = (servoGearTeeth / miniGearTeeth) * (turntableGearTeeth / pinionGearTeeth); / turntableGearTeeth);
+    double GEAR_RATIO = (servoGearTeeth / miniGearTeeth) * (turntableGearTeeth / pinionGearTeeth);
 
     public Turret(HardwareMap hardwareMap){
         //perspective is when staring at the back of the robot

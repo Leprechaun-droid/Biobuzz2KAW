@@ -119,8 +119,6 @@ public class MainDrive extends LinearOpMode {
             telemetry.addData("alliance", poseStorage.getAlliance());
             telemetry.addData("targetPosX", robot.turret.getTurretTargetX());
             telemetry.addData("targetPosY", robot.turret.getTurretTargetY());
-            telemetry.addData("turret heading", robot.turret.getTurretHeading());
-            telemetry.addData("turret ticks", robot.turret.getTurretTickPos());
             //create global variable in driveProcesses class to call later for manualTurretPower
             // have it set to 0 at start
             telemetry.addData("manualTurretPower: ", gamepad2.right_stick_x/4);

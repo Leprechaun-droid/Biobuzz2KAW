@@ -286,7 +286,9 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
                 //  of it that sets the targetRPM must be placed inside the autoRoutine
 
             // setHoodPos does not go outside auto because running it the entire time could strain
-            //  the servo; it must be set at certain points
+            //  the servo; it must be set at certain
+
+            robot.turret.calculateTurretServoPos(follower.pose().x(), follower.pose().y(), follower.pose().heading());
 
             //update turret position (this goes outside the autoRoutine (putting it inside serves no purpose))
             // it runs the same calculation continously (may need to put it in if manually setting positions)
