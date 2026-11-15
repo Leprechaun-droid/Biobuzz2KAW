@@ -17,13 +17,13 @@ public class RPM_Calculator {
     }
 
 
-
+    /*
     public double IdealRPMRegression(){
         //put rpm regression formula here (use distance(in) and RPM for desmos)
-        /*
-            likely won't use Range.clip for this one. It is unlikely we will need to limit the flywheel output since
-            the max is 6000RPM for the shooter motor, but should keep
-         */
+
+        //    likely won't use Range.clip for this one. It is unlikely we will need to limit the flywheel output since
+         //   the max is 6000RPM for the shooter motor, but should keep
+
         return Range.clip();
 
     }
@@ -34,7 +34,7 @@ public class RPM_Calculator {
         return Range.clip();
     }
 
-
+    */
 
 
 }

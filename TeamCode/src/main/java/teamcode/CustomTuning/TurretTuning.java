@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
@@ -56,6 +57,23 @@ public class TurretTuning extends LinearOpMode {
         return targAngle;
     }
 
+
+
+    private double customLimitTurretAng(double targAng){
+        double newTargAng = targAng;
+        while(newTargAng > turretLimit){
+            newTargAng -= (Math.abs(turretLimit) * 2);
+        }
+        while (newTargAng < turretLimit){
+            newTargAng += (Math.abs(turretLimit) * 2);
+        }
+
+        return newTargAng;
+
+    }
+
+
+
     private void limitTestTurretRange(){
 
         if(currentTurretDegPos > turretLimit){
@@ -82,6 +100,7 @@ public class TurretTuning extends LinearOpMode {
         pinionMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         pinionMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        pinionMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         pinionMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         Follower follower = Constants.create(hardwareMap);
@@ -167,8 +186,9 @@ public class TurretTuning extends LinearOpMode {
             //add limit here (this calculates the degrees from the turret angle to the robotHeadingOffset)
             // look for where to add the 360 degree limit
             currentTurretDegPos = (pinionMotor.getCurrentPosition()/(TICKS_PER_REV * gearRatio)) * 360;
-            double turretTargAngleError = limitTurretAngTo180Deg(offsetFromRobotHeadingToTargHeading - currentTurretDegPos);
 
+            //double turretTargAngleError = limitTurretAngTo180Deg(offsetFromRobotHeadingToTargHeading - currentTurretDegPos);
+            double turretTargAngleError = customLimitTurretAng(offsetFromRobotHeadingToTargHeading - currentTurretDegPos);
 
             double pTerm = turretTargAngleError * kP;
 
