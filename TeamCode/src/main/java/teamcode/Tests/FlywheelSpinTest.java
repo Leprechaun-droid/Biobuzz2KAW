@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+// Dummy comment added by Claude Code as an edit demo. Safe to delete.
 @Disabled
 @TeleOp
 public class FlywheelSpinTest extends LinearOpMode {

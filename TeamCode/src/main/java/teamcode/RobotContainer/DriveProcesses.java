@@ -9,6 +9,8 @@ public class DriveProcesses {
 
     Gamepad gamepad1;
     Gamepad gamepad2;
+
+    private static final int ACCEPTABLE_RPM_ERROR = 30;
     //add fullIntakeConditionRPM as a velocity the flywheel must reach before the shooter runs (the pid target RPM)
     int targetRPM = 2240;
 
@@ -28,7 +30,7 @@ public class DriveProcesses {
 
     public void openGateIfWithinShootingTolerance(){
         double RPM_Error = Math.abs(targetRPM - robot.shooter.getRPM());
-        if(RPM_Error < 20) {
+        if(RPM_Error < ACCEPTABLE_RPM_ERROR) {
             robot.turretGate.moveGateToOpenPos();
         } else {
             if(robot.turretGate.getGatePos() != robot.turretGate.getCloseGatePos()){
@@ -121,8 +123,7 @@ public class DriveProcesses {
         if(turretCondition){
             robot.turret.manualTurretInCaseOfEmergency(gamepad2.right_stick_x);
         } else {
-            robot.turret.updateTurretTarget(posY);
-            robot.turret.calculateTurretPIDPower(posX, posY, heading);
+            robot.turret.updateServoTurret(posX, posY, heading);
         }
 
 

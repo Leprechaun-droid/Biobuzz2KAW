@@ -16,17 +16,24 @@ public class Turret {
     Servo turretServo2;
 
     //set servoStartPos to 0.5;
-    double servoStartPos = 0.5;
-    double targetServoPos;
+    private static final double CENTER_SERVO_POS = 0.5;
+    private static final double SERVO_LIMIT_POS = 0.2;
+    private static final double MAX_SERVO_ROTATION_DEG = 350;
+    //tune this
+    private static final double TURRET_LIMIT_DEG = 90;
+
+    private double targetServoPos;
 
     //fill in actual teeth amounts
-    private final double servoGearTeeth = 80;
-    private final double miniGearTeeth = 20;
-    private final double pinionGearTeeth = 5;
-    private final double turntableGearTeeth = 5;
+    private static final double servoGearTeeth = 80;
+    private static final double miniGearTeeth = 20;
+    private static final double pinionGearTeeth = 5;
+    private static final double turntableGearTeeth = 5;
+    private static final double GEAR_RATIO = (servoGearTeeth / miniGearTeeth) * (turntableGearTeeth / pinionGearTeeth);
 
-
-    double GEAR_RATIO = (servoGearTeeth / miniGearTeeth) * (turntableGearTeeth / pinionGearTeeth);
+    //these are set equal so that, when the joystick is fully forward or backward in manual mode, the turret is on the farthest end
+    // of the specified side
+    private static final double JOYSTICK_GAIN = SERVO_LIMIT_POS;
 
     public Turret(HardwareMap hardwareMap){
         //perspective is when staring at the back of the robot
@@ -41,9 +48,8 @@ public class Turret {
 
 
     String targetCell;
-    //check why volatile is necessary; I dont see why it is if it can just be updated for each opmode
-    private static volatile double turretTargetX;
-    private static volatile double turretTargetY;
+    private double turretTargetX;
+    private double turretTargetY;
 
     public void updateTurretTarget(double y){
         alliance = poseStorage.getAlliance();
@@ -85,26 +91,38 @@ public class Turret {
     public void calculateTurretServoPos(double posX, double posY, double robotHeading){
         double disX = turretTargetX - posX;
         double disY = turretTargetY - posY;
-        double MAX_SERVO_ROTATION_DEG = 350;
 
 
         // 1. Calculate field-centric bearing
         double targetFieldBearing = Math.toDegrees(Math.atan2(disY, disX));
 
-        double turretTargetDegree = limitTurretAngleTo180Deg((targetFieldBearing - robotHeading));
+        double turretTargetDegree = Range.clip(limitTurretAngleTo180Deg(targetFieldBearing - Math.toDegrees(robotHeading)), -TURRET_LIMIT_DEG, TURRET_LIMIT_DEG);
 
-        //I think this is right; make sure there is no conflict if the limit for the axon servo is 350 degrees instead
-        double baseTargetServoPos = ((turretTargetDegree * GEAR_RATIO) / MAX_SERVO_ROTATION_DEG) + servoStartPos;
+        double baseTargetServoPos = ((turretTargetDegree * GEAR_RATIO) / MAX_SERVO_ROTATION_DEG) + CENTER_SERVO_POS;
 
-        double servoUpperLimit = servoStartPos + 0.2;
-        double servoLowerLimit = servoStartPos - 0.2;
-        targetServoPos = Range.clip(baseTargetServoPos, servoLowerLimit, servoUpperLimit);
+        // final safety so setPosition never gets a value outside 0–1
+        targetServoPos = Range.clip(baseTargetServoPos, 0, 1);
 
     }
 
     public void setTurretServoPos(){
         turretServo1.setPosition(targetServoPos);
         turretServo2.setPosition(targetServoPos);
+    }
+
+    public void updateServoTurret(double posX, double posY, double robotHeading ){
+        updateTurretTarget(posY);
+        calculateTurretServoPos(posX, posY, robotHeading);
+        setTurretServoPos();
+
+    }
+
+    public void manualTurretInCaseOfEmergency(double joystickValue){
+        targetServoPos = clipToServoLimit(CENTER_SERVO_POS + joystickValue * JOYSTICK_GAIN);
+    }
+
+    private double clipToServoLimit(double targetServoPos){
+        return Range.clip(targetServoPos, (CENTER_SERVO_POS - SERVO_LIMIT_POS) , (CENTER_SERVO_POS + SERVO_LIMIT_POS));
     }
 
 
@@ -119,6 +137,7 @@ public class Turret {
         }
         return newTargetAngle;
     }
+
 
 
 
