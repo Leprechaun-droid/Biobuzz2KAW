@@ -14,10 +14,17 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.Utility.DashboardField;
 import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+/**
+ * Far Blue base auto: drives from the start pose to the near-cell shooting spot, then parks.
+ * Shooting isn't written yet (see the "add shoot" spots below).
+ * The turret auto-aims the whole time and the position is saved for TeleOp.
+ * Start pose: (8, 34, 0) (Pedro field inches/degrees). Sets alliance = BLUE.
+ */
 @Autonomous
 public class FarBlueBaseAuto extends LinearOpMode {
 
@@ -80,6 +87,7 @@ public class FarBlueBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
+        try {
         poseStorage = new PoseStorage();
         follower.setPose(startPos);
         poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
@@ -90,6 +98,10 @@ public class FarBlueBaseAuto extends LinearOpMode {
 
         while (opModeIsActive()) {
             follower.update();
+            poseStorage.savePoseToStorage(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+            robot.turret.setMeasuredVelocity(follower.velocity().vx, follower.velocity().vy, follower.velocity().omega);
+            robot.turret.autoAim(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+            DashboardField.send(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret);
             Scheduler.execute();
 
             telemetry.update();
@@ -101,8 +113,9 @@ public class FarBlueBaseAuto extends LinearOpMode {
             //may need to add something to zero the turret so it saves easier to teleOp
 
         }
-
-
+        } finally {
+            robot.stop();
+        }
     }
 
 

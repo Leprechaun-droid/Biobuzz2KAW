@@ -1,45 +1,40 @@
 package teamcode.Subsystems.Microsystems;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 
+/** goBILDA torque servo that moves out of the way to let balls into the flywheel. */
+@Config
 public class TurretGate {
 
-    Servo turretGate;
+    // PLACEHOLDERS - tune on the robot (FTC Dashboard -> TurretGate)
+    public static double closeGatePos = 0.0;
+    public static double openGatePos = 0.3;
 
-    public TurretGate(HardwareMap hardwareMap){
+    private final Servo turretGate;
+    private double lastCommand = Double.NaN;
+
+    // false = never written, servo stays limp (see RobotContainer/Tuned)
+    private boolean enabled = true;
+    public void setEnabled(boolean on) { enabled = on; }
+    public boolean isEnabled() { return enabled; }
+
+    public TurretGate(HardwareMap hardwareMap) {
         turretGate = hardwareMap.get(Servo.class, "turretGate");
-
-
     }
 
+    public void moveGateToOpenPos() { command(openGatePos); }
+    public void moveGateToClosePos() { command(closeGatePos); }
 
-    private final double openGatePos = 0;
-    private final double closeGatePos = 1;
-    public void moveGateToOpenPos(){
-        //may need to add a condition not to open unless RPM is within an acceptable
-            //margin of error
-        turretGate.setPosition(openGatePos);
+    public double getGatePos() { return lastCommand; }
+    public double getOpenGatePos() { return openGatePos; }
+    public double getCloseGatePos() { return closeGatePos; }
+    public boolean isOpen() { return lastCommand == openGatePos; }
 
+    private void command(double position) {
+        if (!enabled || position == lastCommand) return;
+        turretGate.setPosition(position);
+        lastCommand = position;
     }
-
-
-    public void moveGateToClosePos() {
-        turretGate.setPosition(closeGatePos);
-    }
-
-    public double getGatePos(){
-        return turretGate.getPosition();
-    }
-    public double getOpenGatePos(){
-        return openGatePos;
-    }
-
-    public double getCloseGatePos(){
-        return closeGatePos;
-    }
-
-
-
-
 }

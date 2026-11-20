@@ -2,13 +2,18 @@ package teamcode.RobotContainer;
 
 import static com.pedropathing.ivy.commands.Commands.infinite;
 import static com.pedropathing.ivy.commands.Commands.instant;
-import static com.pedropathing.ivy.commands.Commands.waitMs;
-import static com.pedropathing.ivy.groups.Groups.deadline;
-import static com.pedropathing.ivy.groups.Groups.sequential;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
+import teamcode.ComplexMath.ShotRegression;
+
+/**
+ * Ivy commands for the autos. Each method wraps a subsystem action so it can be dropped
+ * into sequential()/parallel() groups next to path following.
+ *   instant(...)  runs once and finishes.
+ *   infinite(...) runs every loop until whatever group it's in ends it (use inside deadline()).
+ */
 public class SubsystemCommands {
 
 
@@ -60,16 +65,21 @@ public class SubsystemCommands {
 
 
     public Command updateShooterRPM(){
-        // add the autoRPM regression algorithm in the setBaseTargetRPM algorithm
-        double idealRPM = 0;
-        // set idealRPM equal to the value output by the complex math algorithm
-        // then plug ideal RPM into the setBaseTargetRPM argument
-        return infinite(() -> robot.shooter.setBaseTargetRPM(2240));
+        // add the autoRPM algorithm in the setBaseTargetRPM algorithm
+        // Distance -> RPM + hood from the ShotRegression equations (2240 + hood default until filled in).
+        // Needs robot.turret.autoAim(...) running every loop so the distance is current.
+        return infinite(() -> {
+            double d = robot.turret.getDistanceToTarget();
+            robot.shooter.setBaseTargetRPM((int) Math.round(ShotRegression.rpmFor(d)));
+            robot.turretHood.setBase(ShotRegression.hoodFor(d));
+            robot.turretHood.hold();
+        });
     }
     public Command zeroShooterRPM(){
         return instant(() -> robot.shooter.setBaseTargetRPM(0));
     }
 
+    /** Runs the flywheel controller every loop. Keep this in parallel for the whole auto. */
     public Command updateShooterPID(){
         return infinite(() -> robot.shooter.calculateShooterPID());
     }
@@ -85,18 +95,6 @@ public class SubsystemCommands {
     }
 
 
-    public Command readyIntakeAndGateForShoot(){
-        return sequential(
-                openGate(),
-                //subsystemCommands.moveHoodToShootPos(), (add when I make the command)
-                waitMs(200), //needed so gate is fully open and hood is ready when intake runs
-                deadline(
-                        waitMs(2000),
-                        fullIntakeCommand()
-                )
-        );
-
-    }
 
 
 

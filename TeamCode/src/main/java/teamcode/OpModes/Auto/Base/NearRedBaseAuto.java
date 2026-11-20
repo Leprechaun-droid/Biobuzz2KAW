@@ -22,10 +22,19 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import teamcode.ComplexMath.ShotRegression;
+import teamcode.Utility.DashboardField;
 import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+/**
+ * Near Red base auto: drives from the start pose to the far-cell shooting spot, then parks.
+ * Shooting isn't written yet (see the "add shoot" spots below).
+ * Spins the flywheel the whole auto (RPM from ShotRegression).
+ * The turret auto-aims the whole time and the position is saved for TeleOp.
+ * Start pose: (133, 108, 180) (Pedro field inches/degrees). Sets alliance = RED.
+ */
 @Config
 @Autonomous
 public class NearRedBaseAuto extends LinearOpMode {
@@ -104,30 +113,30 @@ public class NearRedBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
-        poseStorage = new PoseStorage();
-        poseStorage.setAlliance(PoseStorage.Alliance.RED);
-        follower.setPose(startPos);
-        Scheduler.schedule(autoRoutine());
-        waitForStart();
+        try {
+            poseStorage = new PoseStorage();
+            poseStorage.setAlliance(PoseStorage.Alliance.RED);
+            follower.setPose(startPos);
+            Scheduler.schedule(autoRoutine());
+            waitForStart();
 
-        while (opModeIsActive()) {
+            while (opModeIsActive()) {
+                follower.update();
+                poseStorage.savePoseToStorage(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+                robot.turret.setMeasuredVelocity(follower.velocity().vx, follower.velocity().vy, follower.velocity().omega);
+                robot.turret.autoAim(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+                DashboardField.send(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret);
+                robot.shooter.setBaseTargetRPM((int) Math.round(ShotRegression.rpmFor(robot.turret.getDistanceToTarget())));
+                robot.shooter.calculateShooterPID();
+                Scheduler.execute();
 
-            follower.update();
-            robot.shooter.setBaseTargetRPM(2240);
-
-
-            robot.shooter.calculateShooterPID();
-
-
-            Scheduler.execute();
-
-            telemetry.update();
-            telemetry.addData("Robot PosX", follower.pose().x());
-            telemetry.addData("Robot PosY", follower.pose().y());
-            telemetry.addData("Robot Heading", follower.pose().heading());
-
+                telemetry.update();
+                telemetry.addData("Robot PosX", follower.pose().x());
+                telemetry.addData("Robot PosY", follower.pose().y());
+                telemetry.addData("Robot Heading", follower.pose().heading());
+            }
+        } finally {
+            robot.stop();
         }
-
-
     }
 }

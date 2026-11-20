@@ -1,5 +1,6 @@
 package teamcode.Tests;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
@@ -7,12 +8,18 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.math.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
 import teamcode.Constants.GameConstants;
 import teamcode.RobotContainer.DriveProcesses;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+/**
+ * (Hidden) Old shot-data helper: shows distance to a cell while you set RPM/hood from the dashboard.
+ * Start the robot at (82, 8, 90). TuningStation replaces this.
+ */
+@Disabled
 @Config
 @TeleOp
 public class RPMCalculatorTuning extends LinearOpMode {
@@ -42,7 +49,8 @@ public class RPMCalculatorTuning extends LinearOpMode {
 
     public void runOpMode(){
         robot = new Robot(hardwareMap);
-        driveProcesses = new DriveProcesses(robot, hardwareMap, gamepad1, gamepad2);
+        gameConstants = new GameConstants();
+        driveProcesses = new DriveProcesses(robot, gamepad1, gamepad2);
 
         //must always start on the red side of the flower cell\
         // I could make another while loop that changes the start Pose too
@@ -60,7 +68,11 @@ public class RPMCalculatorTuning extends LinearOpMode {
 
 
         waitForStart();
+        ElapsedTime loopTimer = new ElapsedTime();
+        try {
         while(opModeIsActive()){
+            double dt = loopTimer.seconds();
+            loopTimer.reset();
             follower.update();
 
             if(gamepad1.dpad_up){
@@ -75,7 +87,7 @@ public class RPMCalculatorTuning extends LinearOpMode {
             } else if (gamepad1.dpad_right){
                 targetX = gameConstants.blueParkCellPos[0];
                 targetY = gameConstants.blueParkCellPos[1];
-            } else if (gamepad1.right_bumper){
+            } else if (gamepad1.left_bumper){
                 targetX = 72;
                 targetY = 72;
             }
@@ -84,18 +96,11 @@ public class RPMCalculatorTuning extends LinearOpMode {
             horizontal = gamepad1.right_stick_x;
             strafe = gamepad1.left_stick_x;
 
+            robot.turretHood.setHoodAngle(hoodAngle);
+
+            driveProcesses.update(follower.pose().x(), follower.pose().y(), follower.pose().heading(), dt);
             robot.shooter.setBaseTargetRPM(targetRPM);
-            if(gamepad1.a){
-                robot.turretHood.setHoodAngle(hoodAngle);
-
-            }
             robot.shooter.calculateShooterPID();
-
-            //could add turretAutoAiming, but I think that would add unneeded complexity; I can just
-            // set the turretAngle by hand; it is not relative for the hood and RPM
-
-            driveProcesses.intakeDriveUpdate();
-            driveProcesses.shooterDriveUpdate();
             robot.drivetrain.updateDriveMotorPowers(vertical, horizontal, strafe);
 
             telemetry.addData("TargetRPM: ", targetRPM);
@@ -103,6 +108,9 @@ public class RPMCalculatorTuning extends LinearOpMode {
             //if this value returns 0, the targetX and targetY are not set
             telemetry.addData("distanceFromTarget: ", calculateDistance());
             telemetry.update();
+        }
+        } finally {
+            robot.stop();
         }
     }
 
