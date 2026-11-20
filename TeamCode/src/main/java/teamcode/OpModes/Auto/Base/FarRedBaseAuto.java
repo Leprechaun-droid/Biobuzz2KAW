@@ -13,10 +13,17 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.Utility.DashboardField;
 import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+/**
+ * Far Red base auto: drives from the start pose to the shooting spot, then parks.
+ * Shooting isn't written yet (see the "add shoot" spots below).
+ * The turret auto-aims the whole time and the position is saved for TeleOp.
+ * Start pose: (107, 10, 90) (Pedro field inches/degrees). Sets alliance = RED.
+ */
 @Autonomous
 public class FarRedBaseAuto extends LinearOpMode {
 
@@ -95,22 +102,27 @@ public class FarRedBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
-        poseStorage = new PoseStorage();
-        follower.setPose(startPos);
-        poseStorage.setAlliance(PoseStorage.Alliance.RED);
-        Scheduler.schedule(autoRoutine());
-        waitForStart();
-        while (opModeIsActive()) {
-            follower.update();
-            Scheduler.execute();
+        try {
+            poseStorage = new PoseStorage();
+            follower.setPose(startPos);
+            poseStorage.setAlliance(PoseStorage.Alliance.RED);
+            Scheduler.schedule(autoRoutine());
+            waitForStart();
+            while (opModeIsActive()) {
+                follower.update();
+                poseStorage.savePoseToStorage(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+                robot.turret.setMeasuredVelocity(follower.velocity().vx, follower.velocity().vy, follower.velocity().omega);
+                robot.turret.autoAim(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+                DashboardField.send(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret);
+                Scheduler.execute();
 
-            telemetry.update();
-            telemetry.addData("Robot PosX", follower.pose().x());
-            telemetry.addData("Robot PosY", follower.pose().y());
-            telemetry.addData("Robot Heading", follower.pose().heading());
-
+                telemetry.update();
+                telemetry.addData("Robot PosX", follower.pose().x());
+                telemetry.addData("Robot PosY", follower.pose().y());
+                telemetry.addData("Robot Heading", follower.pose().heading());
+            }
+        } finally {
+            robot.stop();
         }
-
-
     }
 }

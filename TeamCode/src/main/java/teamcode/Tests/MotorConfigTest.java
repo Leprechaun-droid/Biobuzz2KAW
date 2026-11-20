@@ -6,9 +6,14 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
+import teamcode.RobotContainer.Robot;
+
+/**
+ * (Hidden) Spins one drive motor at a time with the dpad so you can check names and directions.
+ */
 @Disabled
 @TeleOp
-public class DrivetrainMotorConfigTest extends LinearOpMode {
+public class MotorConfigTest extends LinearOpMode {
 
     DcMotor lf_motor;
     DcMotor lb_motor;

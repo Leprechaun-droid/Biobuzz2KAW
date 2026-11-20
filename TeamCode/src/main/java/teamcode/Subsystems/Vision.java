@@ -2,7 +2,6 @@ package teamcode.Subsystems;
 
 import android.util.Size;
 
-import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.BuiltinCameraDirection;
@@ -14,12 +13,17 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.List;
 
 
+/**
+ * AprilTag camera ("Webcam 1"). Nothing opens the camera unless initVisionPortal() is called,
+ * so it costs nothing in OpModes that don't use it. Only ScanTest uses it right now.
+ * BioBuzz tags (IDs 30-45) are on the BOTTOM of each cell facing down, so the camera
+ * has to look up at the hive. Calibration is still the SDK default - see CAMERA CALIBRATION below.
+ */
 public class Vision {
 
     //UPDATE OUTLINE AFTER EVERY COMMIT
@@ -87,7 +91,7 @@ public class Vision {
                 .setDrawCubeProjection(true)
                 .setDrawTagOutline(true)
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getBioBuzzTagLibrary())
+                //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
                 //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
                 //.setCameraPose(cameraPosition, cameraOrientation)
 
@@ -147,14 +151,11 @@ public class Vision {
         clusterDet = null;
     }
 
-    public void scanForClusters() {
+    public void scanForClusters(){
         currentDetections = aprilTagProcessor.getDetections();
-        clusterDet = null;
-        if (currentDetections != null) {
-            for (AprilTagDetection detection : currentDetections) {
-                if (detection instanceof AprilTagClusterDetection) {
-                    clusterDet = (AprilTagClusterDetection) detection;
-                }
+        for(AprilTagDetection detection : currentDetections){
+            if(detection instanceof AprilTagClusterDetection){
+                clusterDet = (AprilTagClusterDetection) detection;
             }
         }
     }
@@ -203,11 +204,7 @@ public class Vision {
         visionPortal.setProcessorEnabled(aprilTagProcessor, false);
     }
 
-    public void startSteamingtoDashboard(int maxFPS){
-        if(visionPortal != null) {
-            FtcDashboard.getInstance().startCameraStream(visionPortal, maxFPS);
-        }
-    }
+
 
 
 
@@ -229,6 +226,10 @@ public class Vision {
 
     public void closeVisionPortal(){
         visionPortal.close();
+    }
+
+    public VisionPortal getVisionPortal() {
+        return visionPortal;
     }
 
 }

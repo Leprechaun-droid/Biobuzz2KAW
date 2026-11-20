@@ -13,10 +13,17 @@ import com.pedropathing.paths.Path;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import teamcode.Utility.DashboardField;
 import teamcode.ComplexMath.Storage.PoseStorage;
 import teamcode.RobotContainer.Robot;
 import teamcode.pedro.Constants;
 
+/**
+ * Near Blue base auto: drives from the start pose to the shooting spot, then parks.
+ * Shooting isn't written yet (see the "add shoot" spots below).
+ * The turret auto-aims the whole time and the position is saved for TeleOp.
+ * Start pose: (15, 135, 270) (Pedro field inches/degrees). Sets alliance = BLUE.
+ */
 @Autonomous
 public class NearBlueBaseAuto extends LinearOpMode {
 
@@ -99,6 +106,7 @@ public class NearBlueBaseAuto extends LinearOpMode {
         Scheduler.reset();
         follower = Constants.create(hardwareMap);
         robot = new Robot(hardwareMap);
+        try {
         follower.setPose(startPos);
         poseStorage = new PoseStorage();
         poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
@@ -108,8 +116,12 @@ public class NearBlueBaseAuto extends LinearOpMode {
         robot.vision.resetScanner();
         while (opModeIsActive()) {
             follower.update();
+            poseStorage.savePoseToStorage(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+            robot.turret.setMeasuredVelocity(follower.velocity().vx, follower.velocity().vy, follower.velocity().omega);
+            robot.turret.autoAim(follower.pose().x(), follower.pose().y(), follower.pose().heading());
+            DashboardField.send(follower.pose().x(), follower.pose().y(), follower.pose().heading(), robot.turret);
             //robot.vision.scanForClusters();
-            //robot.turret.calculateTurretPIDPower(robot.vision.getCurrentCluster());
+            //robot.turret.update(follower.pose().x(), follower.pose().y(), follower.pose().heading(), gamepad2, 0);
             //robot.shooter.calculateShooterPID();
             Scheduler.execute();
 
@@ -119,7 +131,8 @@ public class NearBlueBaseAuto extends LinearOpMode {
             telemetry.addData("Robot Heading", follower.pose().heading());
 
         }
-
-
+        } finally {
+            robot.stop();
+        }
     }
 }
