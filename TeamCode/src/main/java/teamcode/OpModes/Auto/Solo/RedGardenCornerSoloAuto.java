@@ -288,11 +288,26 @@ public class RedGardenCornerSoloAuto extends LinearOpMode {
             // setHoodPos does not go outside auto because running it the entire time could strain
             //  the servo; it must be set at certain
 
-            robot.turret.calculateTurretServoPos(follower.pose().x(), follower.pose().y(), follower.pose().heading());
-
+            robot.turret.updateServoTurret(follower.pose().x(), follower.pose().y(), follower.pose().heading());
             //update turret position (this goes outside the autoRoutine (putting it inside serves no purpose))
             // it runs the same calculation continously (may need to put it in if manually setting positions)
 
+
+
+
+
+            telemetry.addData("followerX: ", follower.pose().x());
+            telemetry.addData("followerY: ", follower.pose().y());
+            telemetry.addData("followerHeading(Deg): ", Math.toDegrees(follower.pose().heading()));
+            // 0 is open, 1 is closed (or at least it should be)
+            telemetry.addData("GateState: ", robot.turretGate.getGateState());
+
+            telemetry.addData("poseStorageX: ", poseStorage.getPosX());
+            telemetry.addData("poseStorageY: ", poseStorage.getPosY());
+            telemetry.addData("poseStorageHeading(Deg): ", Math.toDegrees(poseStorage.getRobotHeading()));
+
+            telemetry.addData("turretTargetX: ", robot.turret.getTurretTargetX());
+            telemetry.addData("turretTargetY: ", robot.turret.getTurretTargetY());
 
 
 

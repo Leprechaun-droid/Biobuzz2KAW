@@ -51,8 +51,13 @@ public class Turret {
     private double turretTargetX;
     private double turretTargetY;
 
-    public void updateTurretTarget(double y){
+    public void updateTurretTarget(double y, double x){
         alliance = poseStorage.getAlliance();
+
+
+        //add algorithm that changes it from shooting into each side of the cell based on the x value (If it has crossed the
+        // centerX of the cell (it should shoot from
+
 
         // Target coordinates based on alliance and position
         if(alliance == PoseStorage.Alliance.RED) {
@@ -60,7 +65,11 @@ public class Turret {
                 targetCell = "RED_GARDEN";
                 turretTargetX = 84.79;
                 turretTargetY = 87.32;
-
+                if(x > 85){
+                    targetCell = "RED_GARDEN_LEFT";
+                    turretTargetX = 0;
+                    turretTargetY = 0;
+                }
             } else {
                 targetCell = "RED_PARK";
                 turretTargetX = 83.84;

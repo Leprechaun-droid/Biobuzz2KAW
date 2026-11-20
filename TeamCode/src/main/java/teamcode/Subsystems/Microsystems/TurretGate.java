@@ -40,6 +40,13 @@ public class TurretGate {
     }
 
 
+    public int getGateState(){
+        if(turretGate.getPosition() == openGatePos){
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
 
 }
