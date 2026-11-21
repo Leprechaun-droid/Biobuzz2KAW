@@ -69,6 +69,7 @@ public class MainDrive extends LinearOpMode {
             waitForStart();
             ElapsedTime loopTimer = new ElapsedTime();
             while (opModeIsActive()) {
+
                 double dt = loopTimer.seconds();
                 loopTimer.reset();
 
@@ -93,6 +94,7 @@ public class MainDrive extends LinearOpMode {
 
                 // turret / shooter / intake / gate / hood
                 driveProcesses.update(pose.x(), pose.y(), pose.heading(), dt);
+                robot.shooter.calculateShooterPID();
                 robot.drivetrain.updateDriveMotorPowers(vertical, turn, strafe);
 
                 // FTC Dashboard: field view + graphs (one packet per loop so the field doesn't flicker)

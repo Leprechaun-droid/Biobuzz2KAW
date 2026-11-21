@@ -93,7 +93,6 @@ public class DriveProcesses {
             }
         }
 
-        robot.shooter.calculateShooterPID();
     }
 
     private void gamepad2FineAdjust() {
@@ -120,5 +119,7 @@ public class DriveProcesses {
 
     private static boolean pressed(boolean now, boolean before) {
         return now && !before;
+
+
     }
 }

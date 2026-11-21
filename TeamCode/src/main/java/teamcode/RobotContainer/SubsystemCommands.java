@@ -2,6 +2,9 @@ package teamcode.RobotContainer;
 
 import static com.pedropathing.ivy.commands.Commands.infinite;
 import static com.pedropathing.ivy.commands.Commands.instant;
+import static com.pedropathing.ivy.commands.Commands.waitMs;
+import static com.pedropathing.ivy.groups.Groups.deadline;
+import static com.pedropathing.ivy.groups.Groups.sequential;
 
 import com.pedropathing.ivy.Command;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -19,6 +22,10 @@ public class SubsystemCommands {
 
     Robot robot;
 
+    //tune this
+    private static final double ACCEPTABLE_RPM_SHOOTING_ERROR = 75;
+
+    private static final double SHOOT_LENGTH_MS = 500;
     public SubsystemCommands(HardwareMap hardwareMap, Robot robot){
         this.robot = robot;
 
@@ -94,11 +101,27 @@ public class SubsystemCommands {
         return instant(() -> robot.intake.zeroIntake());
     }
 
+    public Command readyShoot(double currentRPM) {
+        if (currentRPM > ACCEPTABLE_RPM_SHOOTING_ERROR) {
+            return sequential(
 
+                    openGate(),
+                    fullIntakeCommand()
 
+            );
+        } else {
+            //check if this damages the servo
+            return closeGate();
+        }
+    }
 
+    public Command shoot(double currentRPM){
+        //external methods will calculate PID and target outputs of shooter and hood
+        return deadline(
+                waitMs(SHOOT_LENGTH_MS),
+                readyShoot(currentRPM)
+        );
 
-
-
+    }
 
 }

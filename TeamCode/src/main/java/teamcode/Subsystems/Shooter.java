@@ -87,6 +87,11 @@ public class Shooter {
             return batteryVolts;
         }
 
+        public void autoRPM(int autoRPM){
+            //add autoRPM calculator as argument
+            setBaseTargetRPM(autoRPM);
+        }
+
 
 
 

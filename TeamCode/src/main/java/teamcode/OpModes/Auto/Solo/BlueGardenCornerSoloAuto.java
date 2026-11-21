@@ -40,7 +40,7 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
 
     private final PoseFactory poseFactory = PoseFactory.degrees();
 
-    private final Pose startRedGarden = poseFactory.of(78.8167, 134.2036, 90);
+    private final Pose startGarden = poseFactory.of(78.8167, 134.2036, 90);
     private final Pose startGardenToGarden = poseFactory.of(134.0595, 134.3078, 0);
     private final Pose gardenToParkShoot = poseFactory.of(81.8246, 26.1364, 0);
     private final Pose gardenToParkShootControl1 = poseFactory.of(105.7459, 115.062, 0);
@@ -58,7 +58,7 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
     private final Pose secondParkShootToPark = poseFactory.of(126.6686, 37.3446, -151.9703);
 
     public Path startGardenToGarden() {
-        return Paths.line(startRedGarden, startGardenToGarden).constant(startGardenToGarden);
+        return Paths.line(startGarden, startGardenToGarden).constant(startGardenToGarden);
     }
 
     public Path gardenToParkShoot() {
@@ -121,31 +121,28 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
                         //add turret odometry tracking (auto-aim) and shoot from start
                         //shoot (open gate, intake)
 
-                        sequential(
 
-                            // update turret position
-                            //RPM is already updating
-                            //update hood
-                            subsystemCommands.openGate(),
-                            subsystemCommands.fullIntakeCommand()
-                            ),
+
+                        // update turret position
+                        //RPM is already updating
+                        //update hood
+                        waitMs(200),
+
+                        subsystemCommands.shoot(robot.shooter.getRPM()),
 
                         //keep this intake for gardenIntake
                         //subsystemCommands.zeroIntakeCommand(),
-                        subsystemCommands.zeroShooterRPM(),
                         subsystemCommands.closeGate(),
 
                         follow(follower, startGardenToGarden()),
                         waitMs(500),
                         subsystemCommands.zeroIntakeCommand(),
                         follow(follower, gardenToParkShoot()),
-                        sequential(
 
-                                subsystemCommands.fullIntakeCommand(),
-                                subsystemCommands.openGate()
 
-                        ),
+                        subsystemCommands.shoot(robot.shooter.getRPM()),
                         waitMs(500),
+
 
                         subsystemCommands.closeGate(),
                         //fullIntake is still on for flower intake
@@ -162,8 +159,8 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
 
                         follow(follower, gardenFlowerToGardenShoot()),
 
-                        subsystemCommands.openGate(),
-                        waitMs(500),
+                        subsystemCommands.shoot(robot.shooter.getRPM()),
+
                         subsystemCommands.closeGate(),
 
                         follow(follower, gardenShootToFlowerMidpoint()),
@@ -177,11 +174,11 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
                         follow(follower, parkFlowerToSecondParkShoot()),
                         subsystemCommands.restMatchLoader(),
 
-                        subsystemCommands.openGate(),
-                        waitMs(500),
+                        subsystemCommands.shoot(robot.shooter.getRPM()),
 
                         subsystemCommands.closeGate(),
                         subsystemCommands.zeroIntakeCommand(),
+                        subsystemCommands.restMatchLoader(),
 
                         follow(follower, secondParkShootToPark())
                 ));
@@ -230,7 +227,7 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
         poseStorage.setAlliance(PoseStorage.Alliance.BLUE);
 
         follower = Constants.create(hardwareMap);
-        follower.setPose(startRedGarden);
+        follower.setPose(startGarden);
 
         Scheduler.schedule(autoRoutine());
 
@@ -248,9 +245,10 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
             //add concurrent PID methods
 
             robot.shooter.calculateShooterPID();
+            //add autoRPM calculator
+            robot.shooter.autoRPM();
 
 
-            robot.turret.updateTurretTarget(follower.pose().y());
             robot.turret.setMeasuredVelocity(follower.velocity().vx, follower.velocity().vy, follower.velocity().omega);
             robot.turret.autoAim(follower.pose().x(), follower.pose().y(), follower.pose().heading());
 
@@ -263,91 +261,6 @@ public class BlueGardenCornerSoloAuto extends LinearOpMode {
         } finally {
             robot.stop();
         }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-    private final PoseFactory poseFactory = PoseFactory.degrees();
-
-    private final Pose startRedGarden = poseFactory.of(133.8808, 107.1101, 180);
-    private final Pose startToFirstShoot = poseFactory.of(91, 126, 265);
-    private final Pose firstShootToGardenStart = poseFactory.of(91, 126, 0);
-    private final Pose firstShootToGarden = poseFactory.of(133.3849, 134.1465, 0);
-    private final Pose firstShootToGardenControl1 = poseFactory.of(66, 141, 0);
-    private final Pose gardenToParkShootStart = poseFactory.of(133.3849, 134.1465, 0);
-    private final Pose gardenToParkShoot = poseFactory.of(81.5004, 18.7214, 0);
-    private final Pose gardenToParkShootControl1 = poseFactory.of(73.0562, 141.5, 0);
-    private final Pose parkShootToGardenFlower = poseFactory.of(132.1386, 100.2068, 335);
-    private final Pose parkShootToGardenFlowerControl1 = poseFactory.of(70.0464, 139.0067, 0);
-    private final Pose gardenFlowerToFlowerShootStart = poseFactory.of(132.1386, 100.2068, 0);
-    private final Pose gardenFlowerToFlowerShoot = poseFactory.of(90.572, 119.3808, 260);
-    private final Pose point6Start = poseFactory.of(90.572, 119.3808, 180);
-    private final Pose point6 = poseFactory.of(132.6193, 50.4211, 180);
-
-    // ------
-    // PATHS
-    // ------
-
-    public Path startToFirstShootPath() {
-        return Paths.line(startRedGarden, startToFirstShoot).linear(startRedGarden, startToFirstShoot);
-    }
-
-    public Path firstShootToGardenPath() {
-        return Paths.curve(firstShootToGardenStart, firstShootToGardenControl1, firstShootToGarden).linear(firstShootToGardenStart, firstShootToGarden);
-    }
-
-    public Path gardenToParkShootPath() {
-        return Paths.curve(gardenToParkShootStart, gardenToParkShootControl1, gardenToParkShoot).linear(gardenToParkShootStart, gardenToParkShoot);
-    }
-
-    public Path parkShootToGardenFlowerPath() {
-        return Paths.curve(gardenToParkShoot, parkShootToGardenFlowerControl1, parkShootToGardenFlower).constant(parkShootToGardenFlower);
-    }
-
-    public Path gardenFlowerToFlowerShootPath() {
-        return Paths.line(gardenFlowerToFlowerShootStart, gardenFlowerToFlowerShoot).linear(gardenFlowerToFlowerShootStart, gardenFlowerToFlowerShoot);
-    }
-
-    public Path flowerShootToParkPath() {
-        return Paths.line(point6Start, point6).linear(point6Start, point6);
-    }
-
-    // ---------
-    // Commands
-    // ---------
-
-    public Command goToFirstShoot(){
-        return follow(follower, startToFirstShootPath());
-    }
-
-    public Command goToGarden(){
-        return follow(follower, firstShootToGardenPath());
-    }
-
-    public Command goToParkShoot(){
-        return follow(follower, gardenToParkShootPath());
-    }
-
-    public Command goToGardenFlower(){
-        return follow(follower, parkShootToGardenFlowerPath());
-    }
-
-    public Command goToFlowerShoot(){
-        return follow(follower, gardenFlowerToFlowerShootPath());
-    }
-
-    public Command park(){
-        return follow(follower, flowerShootToParkPath());
     }
 
 
