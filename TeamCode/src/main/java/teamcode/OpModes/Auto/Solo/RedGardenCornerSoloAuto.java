@@ -19,7 +19,7 @@ import teamcode.RobotContainer.SubsystemCommands;
 import teamcode.pedro.Constants;
 
 public class RedGardenCornerSoloAuto extends LinearOpMode {
-    Follower follower;
+    Follower follower; //
     Robot robot;
     PoseStorage poseStorage = new PoseStorage();
     SubsystemCommands subsystemCommands;
