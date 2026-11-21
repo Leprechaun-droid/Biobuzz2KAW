@@ -16,6 +16,8 @@ import com.acmerobotics.dashboard.config.Config;
  * While all RPM terms are 0, everything uses FALLBACK_RPM.
  * While all HOOD terms are 0, the hood stays at TurretHood.defaultPos.
  */
+
+
 @Config
 public class ShotRegression {
 
