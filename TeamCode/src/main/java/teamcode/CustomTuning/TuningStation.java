@@ -227,7 +227,7 @@ public class TuningStation extends LinearOpMode {
                 }
                 // effective (virtual-goal) distance when auto-aiming, real distance otherwise
                 double distance = mode == TurretMode.AUTO_AIM ? robot.turret.getDistanceToTarget()
-                        : robot.turret.distanceFromPivot(x, y, h);
+                        : robot.turret.distanceFromPivot(x, y, h); //
 
                 // ---------- RPM / hood source ----------
                 double rpm = TARGET_RPM;
